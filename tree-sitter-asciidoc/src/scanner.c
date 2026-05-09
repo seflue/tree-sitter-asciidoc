@@ -72,6 +72,11 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
     }
 
     if(start_pos == 0) {
+        // Capture before admonition: parse_sequence advances on partial match,
+        // so a later check on lexer->lookahead would see the wrong character
+        // for terms like "Term" (TIP partial match advances past 'T').
+        bool first_is_alpha_lower = is_ascii_alpha_lower(lexer->lookahead);
+
         if(valid_symbols[TOKEN_ADMONITION_NOTE]) {
             do {
                 if(parse_sequence(lexer, "NOTE")) {
@@ -98,14 +103,13 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
             } while(0);
         }
 
-        bool is_alpha_lower = is_ascii_alpha_lower(lexer->lookahead);
         if(valid_symbols[TOKEN_LIST_MARKER_ALPHA]) {
             if(parse_ordered_marker(lexer)) {
                 return true;
             }
         }
 
-        if(is_alpha_lower && scanner_is_matching_raw_block(s)) {
+        if(first_is_alpha_lower && scanner_is_matching_raw_block(s)) {
             if(valid_symbols[TOKEN_BLOCK_MACRO_NAME]) {
                 if(parse_sequence(lexer, "include")) {
                     lexer->mark_end(lexer);
@@ -117,7 +121,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
             }
         }
 
-        if(is_alpha_lower && !scanner_is_matching_raw_block(s)) {
+        if(first_is_alpha_lower && !scanner_is_matching_raw_block(s)) {
             if(valid_symbols[TOKEN_BLOCK_MACRO_NAME]) {
                 while(is_ascii_alpha_lower(lexer->lookahead)) {
                     lexer->advance(lexer, false);
@@ -534,9 +538,12 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
         }
     }
 
-    // Description list marker: :: (2-4x) or ;; — runs after term has been emitted,
-    // cursor sits on the first colon/semicolon.
-    if(valid_symbols[TOKEN_DESCRIPTION_LIST_MARKER]) {
+    // Description list marker: emitted after the term. Two flavours so the
+    // grammar can pick a content-bearing or content-free description_list_item
+    // without ambiguity.
+    if(valid_symbols[TOKEN_DESCRIPTION_LIST_MARKER_EMPTY]
+       || valid_symbols[TOKEN_DESCRIPTION_LIST_MARKER_WITH_CONTENT]) {
+        bool matched = false;
         if(lexer->lookahead == ':') {
             usize colon_count = 0;
             while(lexer->lookahead == ':') {
@@ -544,17 +551,30 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                 colon_count++;
             }
             if(colon_count >= 2 && colon_count <= 4) {
-                lexer->mark_end(lexer);
-                lexer->result_symbol = TOKEN_DESCRIPTION_LIST_MARKER;
-                return true;
+                matched = true;
             }
         } else if(lexer->lookahead == ';') {
             lexer->advance(lexer, false);
             if(lexer->lookahead == ';') {
                 lexer->advance(lexer, false);
-                lexer->mark_end(lexer);
-                lexer->result_symbol = TOKEN_DESCRIPTION_LIST_MARKER;
-                return true;
+                matched = true;
+            }
+        }
+
+        if(matched) {
+            if(is_newline(lexer->lookahead) || is_eof(lexer)) {
+                if(valid_symbols[TOKEN_DESCRIPTION_LIST_MARKER_EMPTY]) {
+                    lexer->mark_end(lexer);
+                    lexer->result_symbol = TOKEN_DESCRIPTION_LIST_MARKER_EMPTY;
+                    return true;
+                }
+            } else if(lexer->lookahead == ' ' || lexer->lookahead == '\t') {
+                if(valid_symbols[TOKEN_DESCRIPTION_LIST_MARKER_WITH_CONTENT]) {
+                    lexer->advance(lexer, false);
+                    lexer->mark_end(lexer);
+                    lexer->result_symbol = TOKEN_DESCRIPTION_LIST_MARKER_WITH_CONTENT;
+                    return true;
+                }
             }
         }
     }

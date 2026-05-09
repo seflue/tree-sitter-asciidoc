@@ -53,11 +53,18 @@ exports.rules = {
   description_list: $ => prec.right(repeat1($.description_list_item)),
   description_list_item: $ =>
     prec.left(
-      seq(
-        $.description_list_term,
-        $.description_list_marker,
-        optional(seq($._WHITE_SPACE, $.line)),
-        optional(seq($.list_continuation, $.block_element)),
+      choice(
+        seq(
+          $.description_list_term,
+          alias($._description_list_marker_empty, $.description_list_marker),
+          optional(seq($.list_continuation, $.block_element)),
+        ),
+        seq(
+          $.description_list_term,
+          alias($._description_list_marker_with_content, $.description_list_marker),
+          $.line,
+          optional(seq($.list_continuation, $.block_element)),
+        ),
       ),
     ),
 
