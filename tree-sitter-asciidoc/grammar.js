@@ -264,5 +264,7 @@ module.exports = grammar({
     $.list_continuation,
     $.sidebar_block_start_marker,
     $.sidebar_block_end_marker,
+    $.description_list_term,
+    $.description_list_marker,
   ],
 });

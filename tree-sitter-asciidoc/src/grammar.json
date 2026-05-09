@@ -23,6 +23,10 @@
         {
           "type": "SYMBOL",
           "name": "checked_list"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "description_list"
         }
       ]
     },
@@ -266,6 +270,76 @@
           "name": "list_marker_dot"
         }
       ]
+    },
+    "description_list": {
+      "type": "PREC_RIGHT",
+      "value": 0,
+      "content": {
+        "type": "REPEAT1",
+        "content": {
+          "type": "SYMBOL",
+          "name": "description_list_item"
+        }
+      }
+    },
+    "description_list_item": {
+      "type": "PREC_LEFT",
+      "value": 0,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "description_list_term"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "description_list_marker"
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "SYMBOL",
+                    "name": "_WHITE_SPACE"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "line"
+                  }
+                ]
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "SYMBOL",
+                    "name": "list_continuation"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "block_element"
+                  }
+                ]
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
+        ]
+      }
     },
     "callout_list": {
       "type": "PREC_LEFT",
@@ -2215,6 +2289,14 @@
     {
       "type": "SYMBOL",
       "name": "sidebar_block_end_marker"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "description_list_term"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "description_list_marker"
     }
   ],
   "inline": [],

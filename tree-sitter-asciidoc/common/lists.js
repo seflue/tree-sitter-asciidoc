@@ -1,5 +1,6 @@
 exports.rules = {
-  list: $ => choice($.unordered_list, $.ordered_list, $.checked_list),
+  list: $ =>
+    choice($.unordered_list, $.ordered_list, $.checked_list, $.description_list),
   checked_list: $ => prec.left(repeat1($.checked_list_item)),
   checked_list_item: $ =>
     prec.left(
@@ -47,6 +48,17 @@ exports.rules = {
       $.list_marker_geek,
       $.list_marker_alpha,
       $.list_marker_dot,
+    ),
+
+  description_list: $ => prec.right(repeat1($.description_list_item)),
+  description_list_item: $ =>
+    prec.left(
+      seq(
+        $.description_list_term,
+        $.description_list_marker,
+        optional(seq($._WHITE_SPACE, $.line)),
+        optional(seq($.list_continuation, $.block_element)),
+      ),
     ),
 
   callout_list: $ => prec.left(repeat1($.callout_list_item)),

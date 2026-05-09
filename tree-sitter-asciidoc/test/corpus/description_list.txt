@@ -1,0 +1,93 @@
+===========
+description list horizontal
+===========
+
+CPU:: The brain of the computer.
+Hard drive:: Permanent storage.
+
+-----
+
+(document
+  (block_element
+    (section_block
+      (list
+        (description_list
+          (description_list_item
+            (description_list_term)
+            (description_list_marker)
+            (line))
+          (description_list_item
+            (description_list_term)
+            (description_list_marker)
+            (line)))))))
+
+===========
+description list empty description
+===========
+
+CPU::
+
+-----
+
+(document
+  (block_element
+    (section_block
+      (list
+        (description_list
+          (description_list_item
+            (description_list_term)
+            (description_list_marker)))))))
+
+===========
+description list triple colon
+===========
+
+SubTerm::: Description here
+
+-----
+
+(document
+  (block_element
+    (section_block
+      (list
+        (description_list
+          (description_list_item
+            (description_list_term)
+            (description_list_marker)
+            (line)))))))
+
+===========
+description list quad colon
+===========
+
+DeepTerm:::: Description here
+
+-----
+
+(document
+  (block_element
+    (section_block
+      (list
+        (description_list
+          (description_list_item
+            (description_list_term)
+            (description_list_marker)
+            (line)))))))
+
+===========
+description list semicolon
+===========
+
+Term;; Description here
+
+-----
+
+(document
+  (block_element
+    (section_block
+      (list
+        (description_list
+          (description_list_item
+            (description_list_term)
+            (description_list_marker)
+            (line)))))))

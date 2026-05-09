@@ -534,6 +534,73 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
         }
     }
 
+    // Description list marker: :: (2-4x) or ;; — runs after term has been emitted,
+    // cursor sits on the first colon/semicolon.
+    if(valid_symbols[TOKEN_DESCRIPTION_LIST_MARKER]) {
+        if(lexer->lookahead == ':') {
+            usize colon_count = 0;
+            while(lexer->lookahead == ':') {
+                lexer->advance(lexer, false);
+                colon_count++;
+            }
+            if(colon_count >= 2 && colon_count <= 4) {
+                lexer->mark_end(lexer);
+                lexer->result_symbol = TOKEN_DESCRIPTION_LIST_MARKER;
+                return true;
+            }
+        } else if(lexer->lookahead == ';') {
+            lexer->advance(lexer, false);
+            if(lexer->lookahead == ';') {
+                lexer->advance(lexer, false);
+                lexer->mark_end(lexer);
+                lexer->result_symbol = TOKEN_DESCRIPTION_LIST_MARKER;
+                return true;
+            }
+        }
+    }
+
+    // Description list term: scan forward for :: (2-4x) or ;; at col 0
+    if(start_pos == 0 && valid_symbols[TOKEN_DESCRIPTION_LIST_TERM] && !scanner_is_matching_raw_block(s)) {
+        bool has_content = false;
+        while(!is_newline(lexer->lookahead) && !is_eof(lexer)) {
+            if(lexer->lookahead == ':') {
+                if(has_content) {
+                    lexer->mark_end(lexer);
+                    usize colon_count = 0;
+                    while(lexer->lookahead == ':') {
+                        lexer->advance(lexer, false);
+                        colon_count++;
+                    }
+                    if(colon_count >= 2 && colon_count <= 4) {
+                        if(is_white_space(lexer->lookahead) || is_newline(lexer->lookahead) || is_eof(lexer)) {
+                            lexer->result_symbol = TOKEN_DESCRIPTION_LIST_TERM;
+                            return true;
+                        }
+                    }
+                } else {
+                    lexer->advance(lexer, false);
+                }
+            } else if(lexer->lookahead == ';') {
+                if(has_content) {
+                    lexer->mark_end(lexer);
+                    lexer->advance(lexer, false);
+                    if(lexer->lookahead == ';') {
+                        lexer->advance(lexer, false);
+                        if(is_white_space(lexer->lookahead) || is_newline(lexer->lookahead) || is_eof(lexer)) {
+                            lexer->result_symbol = TOKEN_DESCRIPTION_LIST_TERM;
+                            return true;
+                        }
+                    }
+                } else {
+                    lexer->advance(lexer, false);
+                }
+            } else {
+                if(!is_white_space(lexer->lookahead)) has_content = true;
+                lexer->advance(lexer, false);
+            }
+        }
+    }
+
     return false;
 }
 
