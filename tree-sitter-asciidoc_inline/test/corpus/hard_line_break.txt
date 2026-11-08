@@ -101,3 +101,120 @@ text+
   (inline_element
     (word))
   (inline_element))
+
+====================
+hard line break inside unconstrained bold
+====================
+
+**bold text +
+more text**
+
+-----
+
+(inline
+  (inline_element
+    (emphasis
+      (hard_wrap))))
+
+====================
+hard line break inside unconstrained italic
+====================
+
+__it text +
+more text__
+
+-----
+
+(inline
+  (inline_element
+    (italic
+      (hard_wrap))))
+
+====================
+hard line break inside constrained bold
+====================
+
+*bold text +
+more text*
+
+-----
+
+(inline
+  (inline_element
+    (emphasis
+      (hard_wrap))))
+
+====================
+unclosed double asterisk is text before a hard line break
+====================
+
+**some +
+more
+
+-----
+
+(inline
+  (inline_element)
+  (inline_element)
+  (inline_element
+    (word))
+  (inline_element
+    (hard_wrap))
+  (inline_element
+    (word)))
+
+====================
+hard line break inside unconstrained monospace
+====================
+
+``mono +
+more``
+
+-----
+
+(inline
+  (inline_element
+    (monospace
+      (hard_wrap))))
+
+====================
+hard line break inside constrained monospace
+====================
+
+`mono +
+more`
+
+-----
+
+(inline
+  (inline_element
+    (monospace
+      (hard_wrap))))
+
+====================
+hard line break inside highlight
+====================
+
+##hi +
+more##
+
+-----
+
+(inline
+  (inline_element
+    (highlight
+      (hard_wrap))))
+
+====================
+hard line break inside constrained highlight
+====================
+
+#hi +
+more#
+
+-----
+
+(inline
+  (inline_element
+    (highlight
+      (hard_wrap))))

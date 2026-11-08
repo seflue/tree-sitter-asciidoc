@@ -120,3 +120,105 @@ this is a _`monospace` inside ltalic_ code.
   (inline_element
     (word))
   (inline_element))
+
+====================
+trailing double asterisk is text
+====================
+
+xxx**
+
+-----
+
+(inline
+  (inline_element
+    (word))
+  (inline_element)
+  (inline_element))
+
+====================
+unclosed double underscore is text
+====================
+
+__some text
+
+-----
+
+(inline
+  (inline_element)
+  (inline_element)
+  (inline_element
+    (word))
+  (inline_element
+    (word)))
+
+====================
+unclosed double backtick is text
+====================
+
+``some text
+
+-----
+
+(inline
+  (inline_element)
+  (inline_element)
+  (inline_element
+    (word))
+  (inline_element
+    (word)))
+
+====================
+trailing double hash is text
+====================
+
+text##
+
+-----
+
+(inline
+  (inline_element
+    (word))
+  (inline_element)
+  (inline_element))
+
+====================
+unconstrained monospace and highlight still pair
+====================
+
+a``b``c and x##y##z
+
+-----
+
+(inline
+  (inline_element
+    (word))
+  (inline_element
+    (monospace))
+  (inline_element
+    (word))
+  (inline_element
+    (word))
+  (inline_element
+    (word))
+  (inline_element
+    (highlight))
+  (inline_element
+    (word)))
+
+====================
+unclosed double asterisk after a closed pair is text
+====================
+
+x **a** **b
+
+-----
+
+(inline
+  (inline_element
+    (word))
+  (inline_element
+    (emphasis))
+  (inline_element)
+  (inline_element)
+  (inline_element
+    (word)))

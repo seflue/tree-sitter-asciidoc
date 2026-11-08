@@ -62,6 +62,12 @@ module.exports = grammar({
     // the triple form reads its third `+` right after.
     $._pass_double_begin,
     $._pass_triple_begin,
+    // Unconstrained openers (`**`, `__`, two backticks, `##`), emitted only
+    // when a closing pair with at least one character of content follows.
+    $._emphasis_double_begin,
+    $._italic_double_begin,
+    $._monospace_double_begin,
+    $._highlight_double_begin,
   ],
   precedences: $ => [[$.autolink, $._punctuation]],
   conflicts: $ => [[$.roled_text, $._punctuation]],
@@ -471,11 +477,15 @@ module.exports = grammar({
     role: _ => token(/[A-Za-z0-9_][A-Za-z0-9_-]*/),
 
     emphasis: $ =>
-      create_text_formatting('*', $._emphasis_begin, [$.italic, $.monospace, $.highlight]),
+      create_text_formatting('*', $._emphasis_begin, $._emphasis_double_begin,
+        [$.italic, $.monospace, $.highlight, $.hard_wrap]),
     italic: $ =>
-      create_text_formatting('_', $._italic_begin, [$.emphasis, $.monospace, $.highlight]),
-    monospace: $ => create_text_formatting('`', $._monospace_begin, []),
-    highlight: $ => create_text_formatting('#', $._highlight_begin, []),
+      create_text_formatting('_', $._italic_begin, $._italic_double_begin,
+        [$.emphasis, $.monospace, $.highlight, $.hard_wrap]),
+    monospace: $ =>
+      create_text_formatting('`', $._monospace_begin, $._monospace_double_begin, [$.hard_wrap]),
+    highlight: $ =>
+      create_text_formatting('#', $._highlight_begin, $._highlight_double_begin, [$.hard_wrap]),
 
     // Typographic (curved) quotes: "`double`" and '`single`'.  The inner
     // backticks belong to the quote, so this must outrank `monospace`,
@@ -519,7 +529,7 @@ module.exports = grammar({
   },
 });
 
-function create_text_formatting(ch, begin, args) {
+function create_text_formatting(ch, begin, double_begin, args) {
   return choice(
     // Constrained: the opening delimiter is supplied by the external
     // scanner (BEGIN), which only fires when the span actually closes.
@@ -539,9 +549,10 @@ function create_text_formatting(ch, begin, args) {
       ),
       ch,
     ),
-    // Unconstrained: a literal double delimiter.
+    // Unconstrained: the double opening delimiter is supplied by the
+    // external scanner, which only fires when a closing pair follows.
     seq(
-      token(prec(1, ch + ch)),
+      double_begin,
       repeat(escaped_ch(ch, true, ...args)),
       ch + ch,
     ),

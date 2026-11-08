@@ -12,6 +12,10 @@ typedef enum TokenType {
     TOKEN_TYPOGRAPHIC_SINGLE_BEGIN,
     TOKEN_PASS_DOUBLE_BEGIN,
     TOKEN_PASS_TRIPLE_BEGIN,
+    TOKEN_EMPHASIS_DOUBLE_BEGIN,
+    TOKEN_ITALIC_DOUBLE_BEGIN,
+    TOKEN_MONOSPACE_DOUBLE_BEGIN,
+    TOKEN_HIGHLIGHT_DOUBLE_BEGIN,
 } TokenType;
 
 static bool is_space(int32_t c) {
@@ -40,7 +44,7 @@ static bool cross_line_ending(TSLexer *lexer) {
            lexer->lookahead != '\r';
 }
 
-// Scan a constrained opening delimiter `d` (the lexer is positioned at it).
+// Scan a constrained opening delimiter `d`; the lexer is just past it.
 //
 // AsciiDoc constrained formatting only applies when the span is balanced.
 // Emit the opening delimiter token only when:
@@ -51,7 +55,6 @@ static bool cross_line_ending(TSLexer *lexer) {
 // instead of error-recovering into a formatting node with a missing close.
 static bool scan_constrained_begin(TSLexer *lexer, int32_t d,
                                    TokenType symbol) {
-    lexer->advance(lexer, false); // consume the opening delimiter
     int32_t after = lexer->lookahead;
     if (lexer->eof(lexer) || after == d || is_space(after) || after == '\n' ||
         after == '\r') {
@@ -88,6 +91,66 @@ static bool scan_constrained_begin(TSLexer *lexer, int32_t d,
         lexer->advance(lexer, false);
     }
     return false;
+}
+
+// Scan an unconstrained opening delimiter `dd`; the lexer is past the first
+// `d` and looks at the second. Asciidoctor's unconstrained forms, such as
+// `\*\*(CC_ALL+?)\*\*`, need a closing `dd` with at least one character of
+// content before it. Emit the opener only then, so an unpaired `dd` stays
+// punctuation.
+static bool scan_unconstrained_begin(TSLexer *lexer, int32_t d,
+                                     TokenType symbol) {
+    lexer->advance(lexer, false); // the second delimiter
+    lexer->mark_end(lexer);       // the token is exactly `dd`
+
+    // `index` counts content characters; a close pair must start at index 1
+    // or later, so its second delimiter sits at index 2 or later.
+    unsigned index = 0;
+    bool prev_is_d = false;
+    while (!lexer->eof(lexer)) {
+        int32_t c = lexer->lookahead;
+        if (c == '\n' || c == '\r') {
+            if (!cross_line_ending(lexer)) {
+                return false;
+            }
+            index++;
+            prev_is_d = false;
+            continue;
+        }
+        if (c == '\\') {
+            // An escaped character is content, never part of a close.
+            lexer->advance(lexer, false);
+            index++;
+            if (!lexer->eof(lexer) && lexer->lookahead != '\n' &&
+                lexer->lookahead != '\r') {
+                lexer->advance(lexer, false);
+                index++;
+            }
+            prev_is_d = false;
+            continue;
+        }
+        if (c == d && prev_is_d && index >= 2) {
+            lexer->result_symbol = symbol;
+            return true;
+        }
+        prev_is_d = c == d;
+        lexer->advance(lexer, false);
+        index++;
+    }
+    return false;
+}
+
+// Scan a formatting delimiter `d` (the lexer is positioned at it): `dd` is
+// the unconstrained opener, a single `d` the constrained one.
+static bool scan_formatting_begin(TSLexer *lexer, const bool *valid_symbols,
+                                  int32_t d, TokenType single,
+                                  TokenType doubled) {
+    lexer->advance(lexer, false); // the first delimiter
+    if (lexer->lookahead == d) {
+        return valid_symbols[doubled] &&
+               scan_unconstrained_begin(lexer, d, doubled);
+    }
+    return valid_symbols[single] && scan_constrained_begin(lexer, d, single);
 }
 
 // Scan a typographic-quote opener: a quote char (`"` for double, `'` for
@@ -254,17 +317,29 @@ bool tree_sitter_asciidoc_inline_external_scanner_scan(
     }
 
     int32_t la = lexer->lookahead;
-    if (valid_symbols[TOKEN_EMPHASIS_BEGIN] && la == '*') {
-        return scan_constrained_begin(lexer, '*', TOKEN_EMPHASIS_BEGIN);
+    if (la == '*' && (valid_symbols[TOKEN_EMPHASIS_BEGIN] ||
+                      valid_symbols[TOKEN_EMPHASIS_DOUBLE_BEGIN])) {
+        return scan_formatting_begin(lexer, valid_symbols, '*',
+                                     TOKEN_EMPHASIS_BEGIN,
+                                     TOKEN_EMPHASIS_DOUBLE_BEGIN);
     }
-    if (valid_symbols[TOKEN_ITALIC_BEGIN] && la == '_') {
-        return scan_constrained_begin(lexer, '_', TOKEN_ITALIC_BEGIN);
+    if (la == '_' && (valid_symbols[TOKEN_ITALIC_BEGIN] ||
+                      valid_symbols[TOKEN_ITALIC_DOUBLE_BEGIN])) {
+        return scan_formatting_begin(lexer, valid_symbols, '_',
+                                     TOKEN_ITALIC_BEGIN,
+                                     TOKEN_ITALIC_DOUBLE_BEGIN);
     }
-    if (valid_symbols[TOKEN_MONOSPACE_BEGIN] && la == '`') {
-        return scan_constrained_begin(lexer, '`', TOKEN_MONOSPACE_BEGIN);
+    if (la == '`' && (valid_symbols[TOKEN_MONOSPACE_BEGIN] ||
+                      valid_symbols[TOKEN_MONOSPACE_DOUBLE_BEGIN])) {
+        return scan_formatting_begin(lexer, valid_symbols, '`',
+                                     TOKEN_MONOSPACE_BEGIN,
+                                     TOKEN_MONOSPACE_DOUBLE_BEGIN);
     }
-    if (valid_symbols[TOKEN_HIGHLIGHT_BEGIN] && la == '#') {
-        return scan_constrained_begin(lexer, '#', TOKEN_HIGHLIGHT_BEGIN);
+    if (la == '#' && (valid_symbols[TOKEN_HIGHLIGHT_BEGIN] ||
+                      valid_symbols[TOKEN_HIGHLIGHT_DOUBLE_BEGIN])) {
+        return scan_formatting_begin(lexer, valid_symbols, '#',
+                                     TOKEN_HIGHLIGHT_BEGIN,
+                                     TOKEN_HIGHLIGHT_DOUBLE_BEGIN);
     }
     if (valid_symbols[TOKEN_TYPOGRAPHIC_DOUBLE_BEGIN] && la == '"') {
         return scan_typographic_begin(lexer, '"',
