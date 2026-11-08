@@ -54,3 +54,71 @@ triple plus
     (word))
   (inline_element
     (passthrough)))
+
+====================
+four plus signs are an empty unconstrained passthrough
+====================
+
+One. Two. ++++
+
+-----
+
+(inline
+  (inline_element
+    (word))
+  (inline_element)
+  (inline_element
+    (word))
+  (inline_element)
+  (inline_element
+    (passthrough)))
+
+====================
+unclosed double plus is text before a hard line break
+====================
+
+++some +
+more
+
+-----
+
+(inline
+  (inline_element)
+  (inline_element)
+  (inline_element
+    (word))
+  (inline_element
+    (hard_wrap))
+  (inline_element
+    (word)))
+
+====================
+trailing double plus is text
+====================
+
+some++
+
+-----
+
+(inline
+  (inline_element
+    (word))
+  (inline_element)
+  (inline_element))
+
+====================
+unclosed triple plus is text
+====================
+
++++a b
+
+-----
+
+(inline
+  (inline_element)
+  (inline_element)
+  (inline_element)
+  (inline_element
+    (word))
+  (inline_element
+    (word)))

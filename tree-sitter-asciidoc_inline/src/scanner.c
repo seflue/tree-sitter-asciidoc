@@ -10,6 +10,8 @@ typedef enum TokenType {
     TOKEN_HIGHLIGHT_BEGIN,
     TOKEN_TYPOGRAPHIC_DOUBLE_BEGIN,
     TOKEN_TYPOGRAPHIC_SINGLE_BEGIN,
+    TOKEN_PASS_DOUBLE_BEGIN,
+    TOKEN_PASS_TRIPLE_BEGIN,
 } TokenType;
 
 static bool is_space(int32_t c) {
@@ -128,6 +130,63 @@ static bool scan_typographic_begin(TSLexer *lexer, int32_t quote,
     return false;
 }
 
+// Scan an unconstrained passthrough opener; the lexer is past its first `+`
+// and looks at the second. Asciidoctor's InlinePassMacroRx matches
+// `(\+\+\+?|\$\$)(CC_ALL*?)` closed by the same delimiter, so it needs a
+// close of the same width and allows empty content: the triple form wins
+// when a `+++` closes it, otherwise the double form when a `++` closes it
+// (so `++++` is an empty `++` passthrough), and without a close the plus
+// signs stay text.
+//
+// The emitted token is always `++`: whether the triple form applies is known
+// only after the lookahead, when the token end can no longer move past the
+// third `+`. The grammar reads that third `+` after the triple opener.
+static bool scan_pass_begin(TSLexer *lexer, const bool *valid_symbols) {
+    lexer->advance(lexer, false); // the second `+`
+    lexer->mark_end(lexer);
+    bool triple = lexer->lookahead == '+';
+
+    // Offsets count from the start of the opener. A run of plus signs closes
+    // the double form once it holds two, and the triple form once it holds
+    // three that start at offset 3 or later.
+    bool double_close = false;
+    unsigned offset = 2, run = 0, run_start = 0;
+    while (!lexer->eof(lexer)) {
+        int32_t c = lexer->lookahead;
+        if (c == '\n' || c == '\r') {
+            if (!cross_line_ending(lexer)) {
+                break;
+            }
+            run = 0;
+            offset++;
+            continue;
+        }
+        if (c == '+') {
+            if (run == 0) {
+                run_start = offset;
+            }
+            run++;
+            if (run >= 2) {
+                double_close = true;
+            }
+            if (triple && run >= 3 && run_start + run >= 6 &&
+                valid_symbols[TOKEN_PASS_TRIPLE_BEGIN]) {
+                lexer->result_symbol = TOKEN_PASS_TRIPLE_BEGIN;
+                return true;
+            }
+        } else {
+            run = 0;
+        }
+        lexer->advance(lexer, false);
+        offset++;
+    }
+    if (double_close) {
+        lexer->result_symbol = TOKEN_PASS_DOUBLE_BEGIN;
+        return true;
+    }
+    return false;
+}
+
 void *tree_sitter_asciidoc_inline_external_scanner_create() {
     return NULL;
 }
@@ -173,15 +232,23 @@ bool tree_sitter_asciidoc_inline_external_scanner_scan(
         }
     }
 
-    // Hard wrap: a trailing " +" at the end of a line.
-    if (valid_symbols[TOKEN_HARD_WRAP_PLUS] && had_space &&
-        lexer->lookahead == '+') {
+    // A plus sign: a trailing " +" at the end of a line is a hard wrap, and
+    // `++` or `+++` may open an unconstrained passthrough.
+    bool may_wrap = valid_symbols[TOKEN_HARD_WRAP_PLUS] && had_space;
+    if (lexer->lookahead == '+' &&
+        (may_wrap || valid_symbols[TOKEN_PASS_DOUBLE_BEGIN])) {
         lexer->advance(lexer, false);
         if (lexer->eof(lexer) || lexer->lookahead == '\n' ||
             lexer->lookahead == '\r') {
+            if (!may_wrap) {
+                return false;
+            }
             lexer->mark_end(lexer);
             lexer->result_symbol = TOKEN_HARD_WRAP_PLUS;
             return true;
+        }
+        if (lexer->lookahead == '+' && valid_symbols[TOKEN_PASS_DOUBLE_BEGIN]) {
+            return scan_pass_begin(lexer, valid_symbols);
         }
         return false;
     }

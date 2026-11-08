@@ -1902,14 +1902,14 @@
           "type": "SEQ",
           "members": [
             {
-              "type": "TOKEN",
+              "type": "SYMBOL",
+              "name": "_pass_triple_begin"
+            },
+            {
+              "type": "IMMEDIATE_TOKEN",
               "content": {
-                "type": "PREC",
-                "value": 2,
-                "content": {
-                  "type": "STRING",
-                  "value": "+++"
-                }
+                "type": "STRING",
+                "value": "+"
               }
             },
             {
@@ -1945,15 +1945,8 @@
           "type": "SEQ",
           "members": [
             {
-              "type": "TOKEN",
-              "content": {
-                "type": "PREC",
-                "value": 1,
-                "content": {
-                  "type": "STRING",
-                  "value": "++"
-                }
-              }
+              "type": "SYMBOL",
+              "name": "_pass_double_begin"
             },
             {
               "type": "REPEAT",
@@ -2823,6 +2816,14 @@
     {
       "type": "SYMBOL",
       "name": "_typographic_single_begin"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_pass_double_begin"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_pass_triple_begin"
     }
   ],
   "inline": [],

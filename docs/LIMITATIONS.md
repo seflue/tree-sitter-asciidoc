@@ -65,6 +65,14 @@ heading is a flat `section_block`, not a nested `section`. Headings in those
 positions are unusual (typically discrete headings), so this is a deliberate
 scope choice rather than an oversight.
 
+## Inline substitution order
+
+The inline grammar reads passthroughs and quoted text in one pass, while
+Asciidoctor extracts passthroughs before it applies quote substitutions. So in
+`**a ++b** c++` the strong span wins here and `++` stays literal, where
+Asciidoctor produces `**a ` followed by the passthrough `++b** c++`. A plus
+passthrough also cannot hold a `+`: `+++a++b+++` parses to an error node.
+
 ## Inline macro gating is not enforced
 
 `kbd:`, `btn:`, and `menu:` are always parsed. In AsciiDoc they require the

@@ -57,6 +57,11 @@ module.exports = grammar({
     // when a matching close (`" or `') exists on the line.
     $._typographic_double_begin,
     $._typographic_single_begin,
+    // Openers of the unconstrained passthroughs `++…++` and `+++…+++`,
+    // emitted only when a close of the same width follows. Both cover `++`;
+    // the triple form reads its third `+` right after.
+    $._pass_double_begin,
+    $._pass_triple_begin,
   ],
   precedences: $ => [[$.autolink, $._punctuation]],
   conflicts: $ => [[$.roled_text, $._punctuation]],
@@ -433,13 +438,14 @@ module.exports = grammar({
         ),
         // triple-plus: raw, no substitution at all (e.g. inline HTML)
         seq(
-          token(prec(2, '+++')),
+          $._pass_triple_begin,
+          token.immediate('+'),
           repeat(escaped_ch('+', true)),
           token(prec(2, '+++')),
         ),
         // unconstrained
         seq(
-          token(prec(1, '++')),
+          $._pass_double_begin,
           repeat(escaped_ch('+', true)),
           '++',
         ),
