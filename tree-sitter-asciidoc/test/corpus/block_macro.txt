@@ -134,3 +134,58 @@ anchor
     (section_block
       (paragraph
         (line)))))
+
+==================
+partial admonition label before a macro name is a paragraph
+==================
+
+Timage::foo.png[]
+
+TIdeas::foo.png[]
+
+NOTEimage::foo.png[]
+
+----
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+==================
+unknown macro name is a paragraph
+==================
+
+Ximage::foo.png[]
+
+----
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+==================
+built-in image block macro is not a paragraph
+==================
+
+image::foo.png[]
+
+----
+
+(document
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)))))

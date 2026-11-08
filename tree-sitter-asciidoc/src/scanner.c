@@ -100,6 +100,10 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
     }
 
     if(start_pos == 0) {
+        // Read before the admonition probe: a partial label match such as the
+        // `T` of `TIP` advances the lexer, and the macro-name check below must
+        // see the first character of the line, not the one after the match.
+        bool is_alpha_lower = is_ascii_alpha_lower(lexer->lookahead);
         if(valid_symbols[TOKEN_ADMONITION_NOTE]) {
             do {
                 if(parse_sequence(lexer, "NOTE")) {
@@ -130,7 +134,6 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
             } while(0);
         }
 
-        bool is_alpha_lower = is_ascii_alpha_lower(lexer->lookahead);
         if(valid_symbols[TOKEN_LIST_MARKER_ALPHA]) {
             if(parse_ordered_marker(lexer)) {
                 return true;
