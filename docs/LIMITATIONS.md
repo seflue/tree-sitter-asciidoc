@@ -41,15 +41,21 @@ blank-line / line-ending tokenization; see [ROADMAP.md](ROADMAP.md).
 Consecutive lines of prose form one `paragraph`, and constrained formatting
 (`*bold*`, `_italic_`, `` `mono` ``, `#highlight#`) may run over its lines. The
 scanner joins a line to the paragraph above it only when it is sure the line is
-prose, so a paragraph also ends before a line that starts with anything but a
-letter or digit (a non-ASCII character counts as a letter), a line that starts
-like an ordered list item (`a.`, `1.`, and prose such as `Mr. Smith`), a line
-that starts with an admonition label (`NOTE:`), a line that contains `::` or
-`;;`, and a line longer than 512 characters. Asciidoctor would keep some of
-those lines in the paragraph; here they start a paragraph of their own, as every
-line did before. A line that is not prose but still parses as paragraph text,
-such as a lone `+` or a `[[anchor]]` on its own line, starts a paragraph that
-takes in the prose below it.
+prose. Like Asciidoctor, it keeps a list item line (`* item`, `. item`, `1. item`,
+`<1> callout`) or a description list term line (`term:: text`, `term;; text`) in
+the paragraph. A prose line right below a list item line, with no blank line
+between, wraps the item's text instead of starting a paragraph. That text and a
+paragraph attached to a list item end at a list or description list line, where
+the next item starts. Beyond that, a paragraph also ends before an indented
+line, a line that starts with anything else but a letter or digit (a non-ASCII
+character counts as a letter), a line that starts with an admonition label
+(`NOTE:`), a line that contains another `::` or `;;` (a block macro such as
+`image::x[]`, a
+preprocessor directive, or prose such as `std::vector`), and a line longer than
+512 characters. Asciidoctor would keep those lines in the paragraph; here they
+start a paragraph of their own, as every line did before. A line that is not
+prose but still parses as paragraph text, such as a lone `+` or a `[[anchor]]`
+on its own line, starts a paragraph that takes in the prose below it.
 
 A quoted paragraph is injected together with its attribution line, so a span can
 run on into the attribution: in `text *b` followed by `-- Someone*`, the

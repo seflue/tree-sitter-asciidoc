@@ -6,8 +6,8 @@ exports.rules = {
       seq(
         $.checked_list_marker,
         $._WHITE_SPACE,
-        $.line,
-        optional(seq($.list_continuation, $.block_element)),
+        alias($._item_line, $.line),
+        optional(seq($.list_continuation, alias($._list_block_element, $.block_element))),
       ),
     ),
   checked_list_marker: $ =>
@@ -25,8 +25,8 @@ exports.rules = {
       seq(
         $.unordered_list_marker,
         $._WHITE_SPACE,
-        $.line,
-        optional(seq($.list_continuation, $.block_element)),
+        alias($._item_line, $.line),
+        optional(seq($.list_continuation, alias($._list_block_element, $.block_element))),
       ),
     ),
   unordered_list_marker: $ => choice($.list_marker_star, $.list_marker_hyphen),
@@ -37,8 +37,8 @@ exports.rules = {
       seq(
         $.ordered_list_marker,
         $._WHITE_SPACE,
-        $.line,
-        optional(seq($.list_continuation, $.block_element)),
+        alias($._item_line, $.line),
+        optional(seq($.list_continuation, alias($._list_block_element, $.block_element))),
       ),
     ),
   ordered_list_marker: $ =>
@@ -55,8 +55,8 @@ exports.rules = {
       seq(
         $.callout_list_marker,
         $._WHITE_SPACE,
-        $.line,
-        optional(seq($.list_continuation, $.block_element)),
+        alias($._item_line, $.line),
+        optional(seq($.list_continuation, alias($._list_block_element, $.block_element))),
       ),
     ),
 };

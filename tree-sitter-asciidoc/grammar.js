@@ -30,19 +30,7 @@ module.exports = grammar({
     ...lists.rules,
     ...title.rules,
     ...table.rules,
-    block_element: $ =>
-      prec.left(
-        seq(
-          choice(
-            $.document_title,
-            $.document_attr,
-            alias($._section1, $.section),
-            alias($._doc_block, $.section_block),
-            $.line_comment,
-            $.block_comment,
-          ),
-        ),
-      ),
+    block_element: $ => block_element($, $._doc_block),
 
     // Document-level sections nest by heading level: a level-1 section (`==`)
     // contains its content plus any deeper sections, and each level closes
@@ -135,8 +123,13 @@ module.exports = grammar({
       ),
 
     // A document-level content block (no section heading).
-    _doc_block: $ =>
-      seq(optional($._block_attrs), choice($.paragraph, $._block)),
+    _doc_block: $ => doc_block($, $.paragraph),
+
+    // The block attached to a list item by a list continuation. It differs
+    // from a top-level block only in its paragraph, which also ends at a list
+    // line, where Asciidoctor starts the next item.
+    _list_block_element: $ => block_element($, $._list_doc_block),
+    _list_doc_block: $ => doc_block($, alias($._list_paragraph, $.paragraph)),
 
     // Container blocks (delimited/open/sidebar/quote/table cells) keep the flat
     // `section_block`, which may still hold a (discrete) heading.
@@ -180,9 +173,11 @@ module.exports = grammar({
         seq(
           $.term,
           $.description_marker,
-          optional($.line),
+          optional(alias($._item_line, $.line)),
+          optional(seq($.list_continuation, alias($._dlist_block_element, $.block_element))),
         ),
       ),
+    _dlist_block_element: $ => alias($._list_doc_block, $.section_block),
 
     title1: $ => seq($.title_h1_marker, $._WHITE_SPACE, $.line),
     title2: $ => seq($.title_h2_marker, $._WHITE_SPACE, $.line),
@@ -352,23 +347,22 @@ module.exports = grammar({
       ),
 
     line: $ => seq(/[^\r\n]+/, $._block_end),
+    // The text of a list or description list item. As in Asciidoctor, a
+    // prose line right below it (no blank line between) wraps the text, and
+    // the next list line starts the next item.
+    _item_line: $ =>
+      seq(
+        /[^\r\n]+/,
+        repeat(seq($._list_paragraph_soft_break, /[^\r\n]+/)),
+        $._block_end,
+      ),
     // A paragraph runs over consecutive lines of prose.  The line ending
     // between two of its lines is `_paragraph_soft_break`, which the scanner
     // supplies only when the next line is plain prose; a blank line, the end
     // of input or a line that could open a block is left to `_block_end`,
     // which ends the paragraph.
-    paragraph: $ =>
-      prec.left(
-        prec(
-          -1,
-          seq(
-            alias(/[^\r\n]+/, $.line),
-            repeat(seq($._paragraph_soft_break, alias(/[^\r\n]+/, $.line))),
-            $._block_end,
-            optional($.quoted_line),
-          ),
-        ),
-      ),
+    paragraph: $ => paragraph($, $._paragraph_soft_break),
+    _list_paragraph: $ => paragraph($, $._list_paragraph_soft_break),
     quoted_line: $ =>
       seq($.quoted_paragraph_marker, token.immediate(' '), $.line),
 
@@ -461,5 +455,42 @@ module.exports = grammar({
     $.description_marker,
     $._table_header_start,
     $._paragraph_soft_break,
+    $._list_paragraph_soft_break,
   ],
 });
+
+// A top-level block: a document title or attribute, a section, a content
+// block (`doc_block`, aliased to `section_block`) or a comment.
+function block_element($, doc_block) {
+  return prec.left(
+    seq(
+      choice(
+        $.document_title,
+        $.document_attr,
+        alias($._section1, $.section),
+        alias(doc_block, $.section_block),
+        $.line_comment,
+        $.block_comment,
+      ),
+    ),
+  );
+}
+
+// A content block with its optional attribute run.
+function doc_block($, paragraph_rule) {
+  return seq(optional($._block_attrs), choice(paragraph_rule, $._block));
+}
+
+function paragraph($, soft_break) {
+  return prec.left(
+    prec(
+      -1,
+      seq(
+        alias(/[^\r\n]+/, $.line),
+        repeat(seq(soft_break, alias(/[^\r\n]+/, $.line))),
+        $._block_end,
+        optional($.quoted_line),
+      ),
+    ),
+  );
+}

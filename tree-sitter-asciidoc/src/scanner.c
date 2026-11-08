@@ -86,14 +86,18 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
 
     // The line ending inside a paragraph joins the next line to it only when that
     // line is prose. A blank line, the end of input or a line that could open a
-    // block is left to `_block_end`, which ends the paragraph. In error recovery
-    // every symbol is valid, and the block-comment check above has already
-    // returned, so this never runs then.
-    if(valid_symbols[TOKEN_PARAGRAPH_SOFT_BREAK] && is_newline(lexer->lookahead)) {
+    // block is left to `_block_end`, which ends the paragraph. A paragraph
+    // attached to a list item asks for the list variant of the token, because
+    // it also ends at a list line. In error recovery every symbol is valid,
+    // and the block-comment check above has already returned, so this never
+    // runs then.
+    if((valid_symbols[TOKEN_PARAGRAPH_SOFT_BREAK] || valid_symbols[TOKEN_LIST_PARAGRAPH_SOFT_BREAK]) &&
+       is_newline(lexer->lookahead)) {
+        bool in_list = valid_symbols[TOKEN_LIST_PARAGRAPH_SOFT_BREAK];
         skip_line_ending(lexer);
         lexer->mark_end(lexer);
-        if(continues_paragraph(lexer)) {
-            lexer->result_symbol = TOKEN_PARAGRAPH_SOFT_BREAK;
+        if(continues_paragraph(lexer, in_list)) {
+            lexer->result_symbol = in_list ? TOKEN_LIST_PARAGRAPH_SOFT_BREAK : TOKEN_PARAGRAPH_SOFT_BREAK;
             return true;
         }
         return false;
@@ -1095,7 +1099,7 @@ static inline bool is_word_start(i32 ch) {
 
 /// Reads the line the lexer is on, which the caller has already marked as lookahead,
 /// and says whether it is prose that continues a paragraph.
-static inline bool continues_paragraph(TSLexer *lexer) {
+static inline bool continues_paragraph(TSLexer *lexer, bool in_list) {
     i32 line[PARAGRAPH_PEEK];
     usize len = 0;
     while(!lexer->eof(lexer) && !is_newline(lexer->lookahead)) {
@@ -1105,23 +1109,111 @@ static inline bool continues_paragraph(TSLexer *lexer) {
         line[len++] = lexer->lookahead;
         lexer->advance(lexer, false);
     }
-    return is_prose_line(line, len);
+    return is_prose_line(line, len, in_list);
+}
+
+/// Whether an unindented `line` opens a list item: the list part of
+/// Asciidoctor's AnyListRx (`-`, `*`…, `.`…, `•`, `1.`, `a.`, `iv)` or a
+/// callout `<1>`, then a blank), plus this grammar's own Greek marker (`α.`).
+static inline bool is_list_line(i32 const *line, usize len) {
+    usize i = 0;
+    if(len == 0) {
+        return false;
+    }
+    if(is_geek_lower(line[0]) && len > 2 && line[1] == '.' && is_white_space(line[2])) {
+        return true;
+    }
+    if(line[0] == '-' || line[0] == 0x2022) {
+        i = 1;
+    } else if(line[0] == '*' || line[0] == '.') {
+        while(i < len && line[i] == line[0]) {
+            i++;
+        }
+    } else if(line[0] == '<') {
+        i = 1;
+        if(i < len && line[i] == '.') {
+            i++;
+        } else {
+            while(i < len && is_ascii_digit(line[i])) {
+                i++;
+            }
+            if(i == 1) {
+                return false;
+            }
+        }
+        if(i >= len || line[i] != '>') {
+            return false;
+        }
+        i++;
+    } else {
+        bool digits = true, roman = true;
+        while(i < len && line[i] < 0x80 && is_word_start(line[i])) {
+            i32 c = line[i];
+            digits = digits && is_ascii_digit(c);
+            roman = roman && (c == 'I' || c == 'V' || c == 'X' || c == 'i' || c == 'v' || c == 'x');
+            i++;
+        }
+        if(i == 0 || i >= len) {
+            return false;
+        }
+        bool letter = i == 1 && !digits;
+        if(line[i] == '.' && (digits || letter)) {
+            i++;
+        } else if(line[i] == ')' && roman) {
+            i++;
+        } else {
+            return false;
+        }
+    }
+    return i < len && is_white_space(line[i]);
+}
+
+/// Whether an unindented `line` is a description list term: the description
+/// list part of Asciidoctor's AnyListRx, a term followed by `::`, `:::`,
+/// `::::` or `;;` and then a blank or the end of the line. A line comment is
+/// not a term.
+static inline bool is_dlist_line(i32 const *line, usize len) {
+    if(len >= 3 && line[0] == '/' && line[1] == '/' && line[2] != '/') {
+        return false;
+    }
+    if(len == 2 && line[0] == '/' && line[1] == '/') {
+        return false;
+    }
+    // The delimiter needs at least one character of term before it.
+    for(usize i = 2; i < len; i++) {
+        i32 c = line[i];
+        if((c != ':' && c != ';') || line[i - 1] != c) {
+            continue;
+        }
+        usize j = i + 1;
+        if(c == ':') {
+            while(j < len && j - i < 3 && line[j] == ':') {
+                j++;
+            }
+        }
+        if(j == len || is_white_space(line[j])) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /// Conservative: a line is prose only when nothing about it could open a block.
-static inline bool is_prose_line(i32 const *line, usize len) {
-    // Blank, indented, or opening with a marker character (`*`, `.`, `[`, `=`, `|`, …).
-    if(len == 0 || !is_word_start(line[0])) {
+/// Asciidoctor does not end a paragraph at a list or description list line,
+/// so those join the paragraph, unless the paragraph is attached to a list
+/// item (`in_list`), where such a line starts the next item.
+static inline bool is_prose_line(i32 const *line, usize len, bool in_list) {
+    // Blank or indented.
+    if(len == 0 || is_white_space(line[0])) {
         return false;
     }
 
-    // An ordered list marker (`1.`, `a.`, `α.`) followed by white space. This also
-    // stops at prose such as `Mr. Smith`, which then starts a paragraph of its own.
-    usize word = 0;
-    while(word < len && is_word_start(line[word])) {
-        word++;
+    if(is_list_line(line, len) || is_dlist_line(line, len)) {
+        return !in_list;
     }
-    if(word < len && line[word] == '.' && (word + 1 == len || is_white_space(line[word + 1]))) {
+
+    // Opening with a marker character (`*`, `.`, `[`, `=`, `|`, …).
+    if(!is_word_start(line[0])) {
         return false;
     }
 
@@ -1140,8 +1232,9 @@ static inline bool is_prose_line(i32 const *line, usize len) {
         }
     }
 
-    // Description list terms (`term::`, `term;;`), block macros (`image::`) and
-    // preprocessor directives (`ifdef::`) all carry a doubled `:` or `;`.
+    // What is left with a doubled `:` or `;` is not a description list term:
+    // block macros (`image::x[]`), preprocessor directives (`ifdef::x[]`) and
+    // prose such as `std::vector`. These still end the paragraph.
     for(usize i = 1; i < len; i++) {
         if((line[i] == ':' && line[i - 1] == ':') || (line[i] == ';' && line[i - 1] == ';')) {
             return false;

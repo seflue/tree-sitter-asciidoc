@@ -428,11 +428,19 @@
       "required": true,
       "types": [
         {
+          "type": "block_element",
+          "named": true
+        },
+        {
           "type": "description_marker",
           "named": true
         },
         {
           "type": "line",
+          "named": true
+        },
+        {
+          "type": "list_continuation",
           "named": true
         },
         {

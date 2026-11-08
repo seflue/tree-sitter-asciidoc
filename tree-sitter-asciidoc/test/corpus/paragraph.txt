@@ -19,7 +19,7 @@ Another paragraph
         (line)))))
 
 ====================|||
-paragraph: ends before an unordered list
+paragraph: an unordered list line continues the paragraph
 ====================|||
 
 Some prose
@@ -31,18 +31,11 @@ Some prose
   (block_element
     (section_block
       (paragraph
-        (line))))
-  (block_element
-    (section_block
-      (list
-        (unordered_list
-          (unordered_list_item
-            (unordered_list_marker
-              (list_marker_star))
-            (line)))))))
+        (line)
+        (line)))))
 
 ====================|||
-paragraph: ends before an ordered list
+paragraph: an ordered list line continues the paragraph
 ====================|||
 
 Some prose
@@ -54,15 +47,8 @@ Some prose
   (block_element
     (section_block
       (paragraph
-        (line))))
-  (block_element
-    (section_block
-      (list
-        (ordered_list
-          (ordered_list_item
-            (ordered_list_marker
-              (list_marker_dot))
-            (line)))))))
+        (line)
+        (line)))))
 
 ====================|||
 paragraph: ends before a block attribute line
@@ -142,7 +128,7 @@ NOTE: an admonition
         (line)))))
 
 ====================|||
-paragraph: ends before a description list
+paragraph: a description list line continues the paragraph
 ====================|||
 
 Some prose
@@ -154,14 +140,8 @@ term:: definition
   (block_element
     (section_block
       (paragraph
-        (line))))
-  (block_element
-    (section_block
-      (description_list
-        (description_list_item
-          (term)
-          (description_marker)
-          (line))))))
+        (line)
+        (line)))))
 
 ====================|||
 paragraph: ends before a line comment
@@ -318,7 +298,7 @@ over two lines"
           (line))))))
 
 ====================|||
-paragraph: a list-marker-like word ends the paragraph
+paragraph: a word ending in a period continues the paragraph
 ====================|||
 
 Some prose by
@@ -330,10 +310,7 @@ Mr. Smith
   (block_element
     (section_block
       (paragraph
-        (line))))
-  (block_element
-    (section_block
-      (paragraph
+        (line)
         (line)))))
 
 ====================|||
@@ -375,7 +352,7 @@ use std::vector here
         (line)))))
 
 ====================|||
-paragraph: ends before a semicolon description list term
+paragraph: a semicolon description list line continues the paragraph
 ====================|||
 
 Some prose
@@ -387,14 +364,8 @@ term;; a definition
   (block_element
     (section_block
       (paragraph
-        (line))))
-  (block_element
-    (section_block
-      (description_list
-        (description_list_item
-          (term)
-          (description_marker)
-          (line))))))
+        (line)
+        (line)))))
 
 ====================|||
 paragraph: ends before a preprocessor directive
@@ -425,3 +396,300 @@ endif::[]
     (section_block
       (block_macro
         (block_macro_name)))))
+
+====================|||
+paragraph: list and description list lines right after a sentence
+====================|||
+
+One.
+- x.
+
+One.
+Term:: d.
+
+One.
+Term;; d.
+
+One.
+<1> a callout
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line)))))
+
+====================|||
+paragraph: a comment line with a double colon still ends the paragraph
+====================|||
+
+Some prose
+// note:: not a term
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (line_comment
+      (line_comment_marker)
+      (body))))
+
+====================|||
+paragraph: an attached paragraph ends at the next list item
+====================|||
+
+* item
++
+attached prose
+* next item
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_star))
+            (line)
+            (list_continuation)
+            (block_element
+              (section_block
+                (paragraph
+                  (line)))))
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_star))
+            (line)))))))
+
+====================|||
+paragraph: an attached paragraph joins prose lines
+====================|||
+
+* item
++
+attached prose
+more prose
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_star))
+            (line)
+            (list_continuation)
+            (block_element
+              (section_block
+                (paragraph
+                  (line)
+                  (line))))))))))
+
+====================|||
+paragraph: a wrapped list item line ends at the next item
+====================|||
+
+* item
+more text
+* next
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_star))
+            (line))
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_star))
+            (line)))))))
+
+====================|||
+paragraph: a wrapped ordered item line ends at the next item
+====================|||
+
+. step
+more
+. step2
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (list
+        (ordered_list
+          (ordered_list_item
+            (ordered_list_marker
+              (list_marker_dot))
+            (line))
+          (ordered_list_item
+            (ordered_list_marker
+              (list_marker_dot))
+            (line)))))))
+
+====================|||
+paragraph: a wrapped description line ends at the next term
+====================|||
+
+term:: def
+more def
+term2:: x
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (description_list
+        (description_list_item
+          (term)
+          (description_marker)
+          (line))
+        (description_list_item
+          (term)
+          (description_marker)
+          (line))))))
+
+====================|||
+paragraph: a wrapped term-only description ends at the next term
+====================|||
+
+term::
+definition
+more
+term2:: x
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (description_list
+        (description_list_item
+          (term)
+          (description_marker)
+          (line))
+        (description_list_item
+          (term)
+          (description_marker)
+          (line))))))
+
+====================|||
+paragraph: a paragraph attached to a description ends at the next term
+====================|||
+
+term:: def
++
+attached
+term2:: def2
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (description_list
+        (description_list_item
+          (term)
+          (description_marker)
+          (line)
+          (list_continuation)
+          (block_element
+            (section_block
+              (paragraph
+                (line)))))
+        (description_list_item
+          (term)
+          (description_marker)
+          (line))))))
+
+====================|||
+paragraph: a wrapped item line keeps its continuation
+====================|||
+
+* item
+more
++
+attached
+* next
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_star))
+            (line)
+            (list_continuation)
+            (block_element
+              (section_block
+                (paragraph
+                  (line)))))
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_star))
+            (line)))))))
+
+====================|||
+paragraph: prose after a blank line below an item keeps list lines
+====================|||
+
+* item
+
+more text
+* next
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_star))
+            (line))))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line)))))

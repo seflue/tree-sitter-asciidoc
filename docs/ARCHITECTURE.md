@@ -87,7 +87,11 @@ and, at the end of a line inside a paragraph:
 
 - `_paragraph_soft_break`, which joins the next line to the paragraph only when
   that line is prose (`is_prose_line`); otherwise `_block_end` ends the
-  paragraph
+  paragraph. A list item or description list line counts as prose, as in
+  Asciidoctor, except in a paragraph attached to a list item and in the text of
+  a list or description list item, whose prose lines wrap without a blank line:
+  those ask for `_list_paragraph_soft_break`, which such a line refuses, so the
+  next item starts
 
 `scanner_is_matching_raw_block()` reports whether we are inside a raw block
 (listing/literal/fenced), where most markup is suppressed.
