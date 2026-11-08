@@ -400,7 +400,9 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                     if(valid_symbols[TOKEN_BLOCK_TITLE_MARKER]) {
                         if(lexer->get_column(lexer) == 1) {
                             lexer->mark_end(lexer);
-                            lexer->result_symbol = TOKEN_BLOCK_TITLE_MARKER;
+                            skip_rest_of_line(lexer);
+                            lexer->result_symbol = section_marker(valid_symbols, TOKEN_SECTION_TITLE_MARKER_1,
+                                                                  peek_heading_level(lexer), TOKEN_BLOCK_TITLE_MARKER);
                             return true;
                         }
                     }
@@ -442,16 +444,37 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                     break;
                 }
                 case '[': {
-                    if(valid_symbols[TOKEN_ELEMENT_ATTR_MARKER]) {
+                    if(valid_symbols[TOKEN_ELEMENT_ATTR_MARKER] || valid_symbols[TOKEN_BLOCK_ANCHOR_MARKER]) {
                         lexer->advance(lexer, false);
                         // `[[` is a block anchor, not an attribute list.  `[#`
                         // is the id shorthand (`[#id]`) and is handled by the
                         // grammar, so it must not be rejected here.
                         if(lexer->lookahead == '[') {
+                            if(!valid_symbols[TOKEN_BLOCK_ANCHOR_MARKER]) {
+                                return false;
+                            }
+                            lexer->advance(lexer, false);
+                            lexer->mark_end(lexer);
+                            // A line that is no valid anchor, or an anchor with no
+                            // block after it, stays paragraph text.
+                            if(!rest_of_line_is_block_anchor(lexer)) {
+                                return false;
+                            }
+                            int level = peek_heading_level(lexer);
+                            if(level < 0) {
+                                return false;
+                            }
+                            lexer->result_symbol = section_marker(valid_symbols, TOKEN_SECTION_ANCHOR_MARKER_1, level,
+                                                                  TOKEN_BLOCK_ANCHOR_MARKER);
+                            return true;
+                        }
+                        if(!valid_symbols[TOKEN_ELEMENT_ATTR_MARKER]) {
                             return false;
                         }
                         lexer->mark_end(lexer);
-                        lexer->result_symbol = TOKEN_ELEMENT_ATTR_MARKER;
+                        skip_rest_of_line(lexer);
+                        lexer->result_symbol = section_marker(valid_symbols, TOKEN_SECTION_ATTR_MARKER_1,
+                                                              peek_heading_level(lexer), TOKEN_ELEMENT_ATTR_MARKER);
                         return true;
                     }
                     break;
@@ -750,6 +773,155 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
     }
 
     return false;
+}
+
+/// Advance to the end of the current line.
+static inline void skip_rest_of_line(TSLexer *lexer) {
+    while(!lexer->eof(lexer) && !is_newline(lexer->lookahead)) {
+        lexer->advance(lexer, false);
+    }
+}
+
+/// Whether an id may start with `ch` (Asciidoctor: `[\p{Alpha}_:]`). Any
+/// non-ASCII character counts as a letter.
+static inline bool is_anchor_id_start(i32 ch) {
+    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_' || ch == ':' || ch > 0x7f;
+}
+
+/// Whether an id may continue with `ch` (Asciidoctor: `[\p{Word}\-:.]`).
+static inline bool is_anchor_id_char(i32 ch) {
+    return is_anchor_id_start(ch) || is_ascii_digit(ch) || ch == '-' || ch == '.';
+}
+
+/// With the lexer just past `[[`, read the rest of the line and say whether
+/// it completes a block anchor: Asciidoctor's BlockAnchorRx,
+/// `[[` + (nothing | id + optional `,` reftext) + `]]` at the end of the line.
+/// A reference text holding `]` is not accepted, because the grammar cannot
+/// tell it from the closing `]]`.
+static inline bool rest_of_line_is_block_anchor(TSLexer *lexer) {
+    if(is_anchor_id_start(lexer->lookahead)) {
+        while(is_anchor_id_char(lexer->lookahead)) {
+            lexer->advance(lexer, false);
+        }
+        if(lexer->lookahead == ',') {
+            lexer->advance(lexer, false);
+            while(lexer->lookahead == ' ') {
+                lexer->advance(lexer, false);
+            }
+            usize reftext = 0;
+            while(!lexer->eof(lexer) && !is_newline(lexer->lookahead) && lexer->lookahead != ']') {
+                lexer->advance(lexer, false);
+                reftext++;
+            }
+            if(reftext == 0) {
+                return false;
+            }
+        }
+    }
+    if(lexer->lookahead != ']') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+    if(lexer->lookahead != ']') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+    return lexer->eof(lexer) || is_newline(lexer->lookahead);
+}
+
+/// With the lexer at the end of a block attribute, anchor or title line, skip
+/// the rest of the run (more such lines, line comments and blank lines) and
+/// return the level (1-5) of the section heading below it, 0 if something
+/// else follows, or -1 if nothing does.
+static inline int peek_heading_level(TSLexer *lexer) {
+    for(;;) {
+        if(!skip_line_ending(lexer) || lexer->eof(lexer)) {
+            return -1;
+        }
+        i32 c = lexer->lookahead;
+        if(is_newline(c)) {
+            continue;
+        }
+        if(c == '=' || c == '#') {
+            int run = 0;
+            while(lexer->lookahead == c) {
+                lexer->advance(lexer, false);
+                run++;
+            }
+            return run >= 2 && run <= 6 && is_white_space(lexer->lookahead) ? run - 1 : 0;
+        }
+        if(c == '[') {
+            lexer->advance(lexer, false);
+            if(lexer->lookahead == '[') {
+                lexer->advance(lexer, false);
+                if(!rest_of_line_is_block_anchor(lexer)) {
+                    return 0;
+                }
+                continue;
+            }
+            i32 last = c;
+            while(!lexer->eof(lexer) && !is_newline(lexer->lookahead)) {
+                last = lexer->lookahead;
+                lexer->advance(lexer, false);
+            }
+            if(last != ']') {
+                return 0;
+            }
+            continue;
+        }
+        if(c == '.') {
+            // A block title, not a list item, literal block or a lone dot.
+            lexer->advance(lexer, false);
+            if(lexer->eof(lexer) || lexer->lookahead == '.' || is_white_space(lexer->lookahead) ||
+               is_newline(lexer->lookahead)) {
+                return 0;
+            }
+            skip_rest_of_line(lexer);
+            continue;
+        }
+        if(c == '/') {
+            // A line comment or a block comment.
+            lexer->advance(lexer, false);
+            if(lexer->lookahead != '/') {
+                return 0;
+            }
+            lexer->advance(lexer, false);
+            if(lexer->lookahead == '/') {
+                if(!skip_block_comment(lexer)) {
+                    return 0;
+                }
+                continue;
+            }
+            skip_rest_of_line(lexer);
+            continue;
+        }
+        return 0;
+    }
+}
+
+/// With the lexer after the first `//` of a line, skip a block comment as the
+/// grammar reads it (`////` lines around the body) and stop at the end of its
+/// closing line. False if the line opens no block comment or nothing closes it.
+static inline bool skip_block_comment(TSLexer *lexer) {
+    if(!parse_sequence(lexer, "//") || !is_newline(lexer->lookahead)) {
+        return false;
+    }
+    while(skip_line_ending(lexer) && !lexer->eof(lexer)) {
+        if(parse_sequence(lexer, "////") && is_newline(lexer->lookahead)) {
+            return true;
+        }
+        skip_rest_of_line(lexer);
+    }
+    return false;
+}
+
+/// The level-tagged variant of a run's first marker for a heading of `level`,
+/// when the parser can take it here, otherwise the plain `fallback` marker.
+static inline TokenType section_marker(const bool *valid_symbols, TokenType first, int level, TokenType fallback) {
+    if(level >= 1 && level <= 5 && valid_symbols[first + level - 1]) {
+        return first + level - 1;
+    }
+    return fallback;
 }
 
 bool parse_ordered_marker(TSLexer *lexer) {

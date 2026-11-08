@@ -97,6 +97,7 @@
 [
   (document_attr_marker)
   (element_attr_marker)
+  (block_anchor_marker)
 ] @punctuation.delimiter
 
 (document_attr
@@ -105,6 +106,8 @@
 (block_style) @type
 (positional_attr) @attribute
 (id) @label
+(block_anchor
+  (reftext) @markup.link.label)
 (role) @attribute
 (option) @attribute
 

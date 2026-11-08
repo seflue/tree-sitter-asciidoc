@@ -54,8 +54,8 @@ character counts as a letter), a line that starts with an admonition label
 preprocessor directive, or prose such as `std::vector`), and a line longer than
 512 characters. Asciidoctor would keep those lines in the paragraph; here they
 start a paragraph of their own, as every line did before. A line that is not
-prose but still parses as paragraph text, such as a lone `+` or a `[[anchor]]`
-on its own line, starts a paragraph that takes in the prose below it.
+prose but still parses as paragraph text, such as a lone `+`, starts a paragraph
+that takes in the prose below it.
 
 A quoted paragraph is injected together with its attribution line, so a span can
 run on into the attribution: in `text *b` followed by `-- Someone*`, the
@@ -70,6 +70,11 @@ Inside container blocks (open, sidebar, quote, delimited blocks, table cells) a
 heading is a flat `section_block`, not a nested `section`. Headings in those
 positions are unusual (typically discrete headings), so this is a deliberate
 scope choice rather than an oversight.
+
+At the document level a discrete heading (`[discrete]` or `[float]` above
+`== Title`) still opens a `section` and closes the open one. Asciidoctor keeps a
+discrete heading inside the current section, where it starts no section of its
+own.
 
 ## Inline substitution order
 

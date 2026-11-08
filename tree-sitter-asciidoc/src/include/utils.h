@@ -57,7 +57,23 @@ typedef enum TokenType {
     TOKEN_DESCRIPTION_MARKER,
     TOKEN_TABLE_HEADER_START,
     TOKEN_PARAGRAPH_SOFT_BREAK,
-    TOKEN_LIST_PARAGRAPH_SOFT_BREAK
+    TOKEN_LIST_PARAGRAPH_SOFT_BREAK,
+    TOKEN_BLOCK_ANCHOR_MARKER,
+    TOKEN_SECTION_ATTR_MARKER_1,
+    TOKEN_SECTION_ATTR_MARKER_2,
+    TOKEN_SECTION_ATTR_MARKER_3,
+    TOKEN_SECTION_ATTR_MARKER_4,
+    TOKEN_SECTION_ATTR_MARKER_5,
+    TOKEN_SECTION_TITLE_MARKER_1,
+    TOKEN_SECTION_TITLE_MARKER_2,
+    TOKEN_SECTION_TITLE_MARKER_3,
+    TOKEN_SECTION_TITLE_MARKER_4,
+    TOKEN_SECTION_TITLE_MARKER_5,
+    TOKEN_SECTION_ANCHOR_MARKER_1,
+    TOKEN_SECTION_ANCHOR_MARKER_2,
+    TOKEN_SECTION_ANCHOR_MARKER_3,
+    TOKEN_SECTION_ANCHOR_MARKER_4,
+    TOKEN_SECTION_ANCHOR_MARKER_5
 } TokenType;
 
 static inline bool parse_table_attr(TSLexer *lexer);
@@ -72,6 +88,11 @@ static inline bool is_white_space(i32 ch);
 static inline bool continues_paragraph(TSLexer *lexer, bool in_list);
 static inline bool is_prose_line(i32 const *line, usize len, bool in_list);
 static inline bool is_list_line(i32 const *line, usize len);
+static inline void skip_rest_of_line(TSLexer *lexer);
+static inline bool rest_of_line_is_block_anchor(TSLexer *lexer);
+static inline int peek_heading_level(TSLexer *lexer);
+static inline bool skip_block_comment(TSLexer *lexer);
+static inline TokenType section_marker(const bool *valid_symbols, TokenType first, int level, TokenType fallback);
 static inline bool is_dlist_line(i32 const *line, usize len);
 static inline bool is_word_start(i32 ch);
 static inline bool is_new_line(i32 ch);

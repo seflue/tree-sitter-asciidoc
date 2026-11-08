@@ -8,6 +8,8 @@ const lists = require('./common/lists.js');
 const title = require('./common/document_title.js');
 const table = require('./common/table.js');
 
+const LEVELS = [1, 2, 3, 4, 5];
+
 module.exports = grammar({
   name: 'asciidoc',
 
@@ -39,10 +41,15 @@ module.exports = grammar({
     // A section body allows content blocks plus any *deeper* section, so an
     // illegal level skip (e.g. `==` straight to `====`) still nests instead of
     // erroring; the innermost open section greedily claims a deeper heading.
+    // The attribute run above a heading opens with a level-tagged marker
+    // (`_section_attrs_N`). The scanner looks through line and block
+    // comments. Plain `_block_attrs` remain for a run holding a line it does
+    // not look through, such as a `/// text` comment; that fallback works
+    // only above the first heading, after an open section it is an error.
     _section1: $ =>
       prec.right(
         seq(
-          optional($._block_attrs),
+          optional(choice($._section_attrs_1, $._block_attrs)),
           $.title1,
           repeat(
             choice(
@@ -59,7 +66,7 @@ module.exports = grammar({
     _section2: $ =>
       prec.right(
         seq(
-          optional($._block_attrs),
+          optional(choice($._section_attrs_2, $._block_attrs)),
           $.title2,
           repeat(
             choice(
@@ -75,7 +82,7 @@ module.exports = grammar({
     _section3: $ =>
       prec.right(
         seq(
-          optional($._block_attrs),
+          optional(choice($._section_attrs_3, $._block_attrs)),
           $.title3,
           repeat(
             choice(
@@ -90,7 +97,7 @@ module.exports = grammar({
     _section4: $ =>
       prec.right(
         seq(
-          optional($._block_attrs),
+          optional(choice($._section_attrs_4, $._block_attrs)),
           $.title4,
           repeat(
             choice(
@@ -104,11 +111,13 @@ module.exports = grammar({
     _section5: $ =>
       prec.right(
         seq(
-          optional($._block_attrs),
+          optional(choice($._section_attrs_5, $._block_attrs)),
           $.title5,
           repeat(choice($._section_comment, alias($._doc_block, $.section_block))),
         ),
       ),
+
+    ...section_attrs_rules(),
 
     _section_comment: $ => choice($.line_comment, $.block_comment),
 
@@ -118,8 +127,8 @@ module.exports = grammar({
     // stays a standalone `_section_comment`.
     _block_attrs: $ =>
       seq(
-        choice($.element_attr, $.block_title),
-        repeat(choice($.element_attr, $.block_title, $._section_comment)),
+        choice($.element_attr, $.block_title, $.block_anchor),
+        repeat(choice($.element_attr, $.block_title, $.block_anchor, $._section_comment)),
       ),
 
     // A document-level content block (no section heading).
@@ -225,9 +234,9 @@ module.exports = grammar({
     // (`#`), role (`.`) and option (`%`) shorthand; later entries are plain
     // positional values or `name=value` pairs.  Commas separate entries
     // except inside a quoted value.
-    element_attr: $ =>
+    element_attr: $ => seq($.element_attr_marker, $._element_attr_body),
+    _element_attr_body: $ =>
       seq(
-        $.element_attr_marker,
         optional($._WHITE_SPACE),
         optional(seq($._lead_attr, optional($._WHITE_SPACE))),
         repeat(
@@ -276,6 +285,21 @@ module.exports = grammar({
     _value_token_eq: $ => choice($._attr_word, '#', '.', '%', '='),
     _attr_word: _ => token(/[^,=#.%\]"'\s]+/),
     block_title: $ => seq($.block_title_marker, $.line),
+    // A block anchor, `[[id]]` or `[[id,reftext]]`, which names the block
+    // that follows. The scanner opens it only when the whole line is a valid
+    // anchor (Asciidoctor's BlockAnchorRx) and a block follows.
+    block_anchor: $ => seq($.block_anchor_marker, $._block_anchor_body),
+    _block_anchor_body: $ =>
+      seq(
+        optional(
+          seq(
+            alias(/[^,\]\r\n]+/, $.id),
+            optional(seq(',', optional($._WHITE_SPACE), alias(/[^\]\s][^\]\r\n]*/, $.reftext))),
+          ),
+        ),
+        alias(']]', $.block_anchor_marker),
+        $._NEWLINE,
+      ),
 
     delimited_block: $ =>
       prec.left(
@@ -456,8 +480,41 @@ module.exports = grammar({
     $._table_header_start,
     $._paragraph_soft_break,
     $._list_paragraph_soft_break,
+    $.block_anchor_marker,
+    // The first marker of an attribute, title or anchor run above a heading
+    // of level 1-5. The scanner looks ahead to the heading and hands out the
+    // variant for its level, so the parser can close the open section before
+    // the run instead of claiming the run for it.
+    ...LEVELS.map(n => $[`_section_attr_marker_${n}`]),
+    ...LEVELS.map(n => $[`_section_title_marker_${n}`]),
+    ...LEVELS.map(n => $[`_section_anchor_marker_${n}`]),
   ],
 });
+
+// The attribute, title and anchor lines above a heading of each level. The
+// first line carries the level-tagged marker, under the same node names as
+// in `_block_attrs`.
+function section_attrs_rules() {
+  const rules = {};
+  for (const n of LEVELS) {
+    rules[`_section_attrs_${n}`] = $ =>
+      seq(
+        choice(
+          alias($[`_section_element_attr_${n}`], $.element_attr),
+          alias($[`_section_block_title_${n}`], $.block_title),
+          alias($[`_section_block_anchor_${n}`], $.block_anchor),
+        ),
+        repeat(choice($.element_attr, $.block_title, $.block_anchor, $._section_comment)),
+      );
+    rules[`_section_element_attr_${n}`] = $ =>
+      seq(alias($[`_section_attr_marker_${n}`], $.element_attr_marker), $._element_attr_body);
+    rules[`_section_block_title_${n}`] = $ =>
+      seq(alias($[`_section_title_marker_${n}`], $.block_title_marker), $.line);
+    rules[`_section_block_anchor_${n}`] = $ =>
+      seq(alias($[`_section_anchor_marker_${n}`], $.block_anchor_marker), $._block_anchor_body);
+  }
+  return rules;
+}
 
 // A top-level block: a document title or attribute, a section, a content
 // block (`doc_block`, aliased to `section_block`) or a comment.

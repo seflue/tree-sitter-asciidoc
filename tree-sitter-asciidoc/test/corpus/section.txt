@@ -106,3 +106,386 @@ content
         (section_block
           (paragraph
             (line)))))))
+
+==================
+block anchor above a heading belongs to the section
+==================
+
+[[anchor]]
+== T
+
+Body.
+
+--------
+
+(document
+  (block_element
+    (section
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
+
+==================
+id and reftext attribute above a sibling heading
+==================
+
+== A
+
+Body.
+
+[#b,reftext=X]
+== B
+
+--------
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line)))))
+  (block_element
+    (section
+      (element_attr
+        (element_attr_marker)
+        (positional_attr
+          (id))
+        (named_attr
+          (attribute_name)
+          (attribute_value
+            (value)))
+        (element_attr_marker))
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+block style above a sibling heading
+==================
+
+== A
+
+Body.
+
+[appendix]
+== B
+
+--------
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line)))))
+  (block_element
+    (section
+      (element_attr
+        (element_attr_marker)
+        (positional_attr
+          (block_style))
+        (element_attr_marker))
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+anchor, title, comment and attribute above a sibling heading
+==================
+
+== A
+
+Body.
+
+[[b]]
+.Title
+// note
+[appendix]
+== B
+
+--------
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line)))))
+  (block_element
+    (section
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (block_title
+        (block_title_marker)
+        (line))
+      (line_comment
+        (line_comment_marker)
+        (body))
+      (element_attr
+        (element_attr_marker)
+        (positional_attr
+          (block_style))
+        (element_attr_marker))
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+anchor above a heading that closes a nested section
+==================
+
+== A
+
+=== A1
+
+Body.
+
+[[b]]
+== B
+
+--------
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section
+        (title2
+          (title_h2_marker)
+          (line))
+        (section_block
+          (paragraph
+            (line))))))
+  (block_element
+    (section
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+anchor above a deeper heading opens a subsection
+==================
+
+== A
+
+Body.
+
+[[a1]]
+=== A1
+
+--------
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line)))
+      (section
+        (block_anchor
+          (block_anchor_marker)
+          (id)
+          (block_anchor_marker))
+        (title2
+          (title_h2_marker)
+          (line))))))
+
+==================
+attribute above a sibling heading after a listing block
+==================
+
+== A
+
+----
+code
+----
+
+[appendix]
+== B
+
+--------
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (listing_block
+          (listing_block_start_marker)
+          (listing_block_body)
+          (listing_block_end_marker)))))
+  (block_element
+    (section
+      (element_attr
+        (element_attr_marker)
+        (positional_attr
+          (block_style))
+        (element_attr_marker))
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+anchor above a markdown heading
+==================
+
+[[a]]
+## T
+
+--------
+
+(document
+  (block_element
+    (section
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+attribute run with a block comment above the first heading
+==================
+
+[appendix]
+////
+c
+////
+== B
+
+--------
+
+(document
+  (block_element
+    (section
+      (element_attr
+        (element_attr_marker)
+        (positional_attr
+          (block_style))
+        (element_attr_marker))
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+attribute run with a block comment above a sibling heading
+==================
+
+== A
+
+Body.
+
+.Title
+[[b]]
+////
+c
+////
+== B
+
+[appendix]
+////
+c
+////
+== C
+
+--------
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line)))))
+  (block_element
+    (section
+      (block_title
+        (block_title_marker)
+        (line))
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))
+      (title1
+        (title_h1_marker)
+        (line))))
+  (block_element
+    (section
+      (element_attr
+        (element_attr_marker)
+        (positional_attr
+          (block_style))
+        (element_attr_marker))
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+attribute run with a triple-slash line above the first heading
+==================
+
+[appendix]
+/// note
+== B
+
+--------
+
+(document
+  (block_element
+    (section
+      (element_attr
+        (element_attr_marker)
+        (positional_attr
+          (block_style))
+        (element_attr_marker))
+      (line_comment
+        (line_comment_marker)
+        (body))
+      (title1
+        (title_h1_marker)
+        (line)))))

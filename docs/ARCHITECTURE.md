@@ -82,6 +82,14 @@ It also emits, at the start of a line:
 - list markers (`*`, `-`, `.`, ordered digit/alpha/Greek, callouts)
 - the indented-literal marker, document-attribute markers, table markers,
   description-list terms, and comment markers
+- the markers of block attribute lines (`[...]`), block titles (`.Title`) and
+  block anchors (`[[id]]`). For the first line of such a run the scanner looks
+  ahead past the run; when a section heading follows, it emits the variant
+  tagged with the heading's level (`_section_attr_marker_N` and friends), so
+  the parser closes the open section first and the run lands in the new one.
+  The lookahead skips line and block comments between the lines of the run.
+  A `[[` line becomes a block anchor only when the whole line is a valid
+  anchor (Asciidoctor's BlockAnchorRx) and something follows it
 
 and, at the end of a line inside a paragraph:
 

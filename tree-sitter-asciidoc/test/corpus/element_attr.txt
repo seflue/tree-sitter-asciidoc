@@ -129,3 +129,125 @@ x
         (element_attr_marker))
       (paragraph
         (line)))))
+
+==================
+block anchor
+==================
+
+[[a]]
+x
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (paragraph
+        (line)))))
+
+==================
+block anchor with reference text
+==================
+
+[[a-1.b:c,Some Reference]]
+x
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (reftext)
+        (block_anchor_marker))
+      (paragraph
+        (line)))))
+
+==================
+empty block anchor
+==================
+
+[[]]
+x
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (block_anchor
+        (block_anchor_marker)
+        (block_anchor_marker))
+      (paragraph
+        (line)))))
+
+==================
+block anchor with an invalid id is a paragraph
+==================
+
+[[foo bar]]
+== T
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+block anchor at the end of the document is a paragraph
+==================
+
+Text.
+
+[[a]]
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+==================
+block anchor inside a sidebar block
+==================
+
+****
+[[a]]
+Text
+****
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (sidebar_block
+        (sidebar_block_start_marker)
+        (section_block
+          (block_anchor
+            (block_anchor_marker)
+            (id)
+            (block_anchor_marker))
+          (paragraph
+            (line)))
+        (sidebar_block_end_marker)))))
