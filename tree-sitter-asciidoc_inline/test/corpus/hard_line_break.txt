@@ -13,6 +13,34 @@ text +
     (hard_wrap)))
 
 ====================
+several spaces before plus are a hard line break
+====================
+
+text   +
+
+-----
+
+(inline
+  (inline_element
+    (word))
+  (inline_element
+    (hard_wrap)))
+
+====================
+leading space does not prevent a hard line break
+====================
+
+ text +
+
+-----
+
+(inline
+  (inline_element
+    (word))
+  (inline_element
+    (hard_wrap)))
+
+====================
 plus in passthrough is not hard line break
 ====================
 
