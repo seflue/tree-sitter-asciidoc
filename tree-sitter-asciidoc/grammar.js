@@ -41,6 +41,8 @@ module.exports = grammar({
     // A section body allows content blocks plus any *deeper* section, so an
     // illegal level skip (e.g. `==` straight to `====`) still nests instead of
     // erroring; the innermost open section greedily claims a deeper heading.
+    // An attribute entry between blocks belongs to the open section, as
+    // Asciidoctor reads it as metadata of the next block, not as a break.
     // The attribute run above a heading opens with a level-tagged marker
     // (`_section_attrs_N`). The scanner looks through line and block
     // comments. Plain `_block_attrs` remain for a run holding a line it does
@@ -54,6 +56,7 @@ module.exports = grammar({
           repeat(
             choice(
               $._section_comment,
+              $.document_attr,
               alias($._doc_block, $.section_block),
               alias($._section2, $.section),
               alias($._section3, $.section),
@@ -71,6 +74,7 @@ module.exports = grammar({
           repeat(
             choice(
               $._section_comment,
+              $.document_attr,
               alias($._doc_block, $.section_block),
               alias($._section3, $.section),
               alias($._section4, $.section),
@@ -87,6 +91,7 @@ module.exports = grammar({
           repeat(
             choice(
               $._section_comment,
+              $.document_attr,
               alias($._doc_block, $.section_block),
               alias($._section4, $.section),
               alias($._section5, $.section),
@@ -102,6 +107,7 @@ module.exports = grammar({
           repeat(
             choice(
               $._section_comment,
+              $.document_attr,
               alias($._doc_block, $.section_block),
               alias($._section5, $.section),
             ),
@@ -113,7 +119,7 @@ module.exports = grammar({
         seq(
           optional(choice($._section_attrs_5, $._block_attrs)),
           $.title5,
-          repeat(choice($._section_comment, alias($._doc_block, $.section_block))),
+          repeat(choice($._section_comment, $.document_attr, alias($._doc_block, $.section_block))),
         ),
       ),
 

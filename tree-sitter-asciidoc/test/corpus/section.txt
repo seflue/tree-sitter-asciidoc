@@ -489,3 +489,98 @@ attribute run with a triple-slash line above the first heading
       (title1
         (title_h1_marker)
         (line)))))
+
+=================================================
+attribute entry in a body keeps the section open
+=================================================
+
+== A
+
+:a: 1
+
+=== B
+
+text
+
+== C
+
+See {x}.
+
+--------
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))
+      (section
+        (title2
+          (title_h2_marker)
+          (line))
+        (section_block
+          (paragraph
+            (line))))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
+
+==============================================
+attribute entry between blocks of a subsection
+==============================================
+
+== A
+
+=== A1
+
+text
+
+:zz: v
+
+===== Deep
+
+Probe {zz} here.
+
+:yy:
+
+--------
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section
+        (title2
+          (title_h2_marker)
+          (line))
+        (section_block
+          (paragraph
+            (line)))
+        (document_attr
+          (document_attr_marker)
+          (attr_name)
+          (document_attr_marker)
+          (line))
+        (section
+          (title4
+            (title_h4_marker)
+            (line))
+          (section_block
+            (paragraph
+              (line)))
+          (document_attr
+            (document_attr_marker)
+            (attr_name)
+            (document_attr_marker)))))))

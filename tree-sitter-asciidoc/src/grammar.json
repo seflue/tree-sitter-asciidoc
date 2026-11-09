@@ -1519,6 +1519,10 @@
                   "name": "_section_comment"
                 },
                 {
+                  "type": "SYMBOL",
+                  "name": "document_attr"
+                },
+                {
                   "type": "ALIAS",
                   "content": {
                     "type": "SYMBOL",
@@ -1610,6 +1614,10 @@
                   "name": "_section_comment"
                 },
                 {
+                  "type": "SYMBOL",
+                  "name": "document_attr"
+                },
+                {
                   "type": "ALIAS",
                   "content": {
                     "type": "SYMBOL",
@@ -1692,6 +1700,10 @@
                   "name": "_section_comment"
                 },
                 {
+                  "type": "SYMBOL",
+                  "name": "document_attr"
+                },
+                {
                   "type": "ALIAS",
                   "content": {
                     "type": "SYMBOL",
@@ -1765,6 +1777,10 @@
                   "name": "_section_comment"
                 },
                 {
+                  "type": "SYMBOL",
+                  "name": "document_attr"
+                },
+                {
                   "type": "ALIAS",
                   "content": {
                     "type": "SYMBOL",
@@ -1827,6 +1843,10 @@
                 {
                   "type": "SYMBOL",
                   "name": "_section_comment"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "document_attr"
                 },
                 {
                   "type": "ALIAS",
