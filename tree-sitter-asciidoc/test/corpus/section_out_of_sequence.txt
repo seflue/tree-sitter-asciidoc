@@ -1,0 +1,252 @@
+==================
+level-2 section directly below the document title
+==================
+
+= Doc
+
+=== B
+
+Text.
+
+--------
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)))
+  (block_element
+    (section
+      (title2
+        (title_h2_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
+
+==================
+partial file starting with a level-3 section
+==================
+
+==== Partial
+
+Text.
+
+--------
+
+(document
+  (block_element
+    (section
+      (title3
+        (title_h3_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
+
+==================
+level-1 section after an out-of-sequence section is its sibling
+==================
+
+= Doc
+
+=== B
+
+Text.
+
+== C
+
+More.
+
+--------
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)))
+  (block_element
+    (section
+      (title2
+        (title_h2_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
+
+==================
+deeper section nests in an out-of-sequence section
+==================
+
+=== B
+
+==== D
+
+=== E
+
+--------
+
+(document
+  (block_element
+    (section
+      (title2
+        (title_h2_marker)
+        (line))
+      (section
+        (title3
+          (title_h3_marker)
+          (line)))))
+  (block_element
+    (section
+      (title2
+        (title_h2_marker)
+        (line)))))
+
+==================
+block anchor above an out-of-sequence section belongs to it
+==================
+
+= Doc
+
+[[b]]
+=== B
+
+Text.
+
+--------
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)))
+  (block_element
+    (section
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (title2
+        (title_h2_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
+
+==================
+open block closed directly before an out-of-sequence section
+==================
+
+--
+--
+
+=== B
+
+text
+
+--
+x
+--
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (open_block
+        (open_block_marker)
+        (open_block_marker))))
+  (block_element
+    (section
+      (title2
+        (title_h2_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line)))
+      (section_block
+        (open_block
+          (open_block_marker)
+          (section_block
+            (paragraph
+              (line)))
+          (open_block_marker))))))
+
+==================
+level-2 heading in a list continuation ends the item in a local error
+==================
+
+* item
++
+=== B
+
+text
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_star))
+            (line))))))
+  (ERROR
+    (list_continuation))
+  (block_element
+    (section
+      (title2
+        (title_h2_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
+
+==================
+attribute line after a page break belongs to the next section
+==================
+
+== A
+
+[x]
+<<<
+
+[y]
+== B
+
+--------
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (element_attr
+          (element_attr_marker)
+          (positional_attr
+            (block_style))
+          (element_attr_marker))
+        (breaks
+          (breaks_marker)))))
+  (block_element
+    (section
+      (element_attr
+        (element_attr_marker)
+        (positional_attr
+          (block_style))
+        (element_attr_marker))
+      (title1
+        (title_h1_marker)
+        (line)))))

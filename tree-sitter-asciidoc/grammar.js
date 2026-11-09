@@ -32,7 +32,9 @@ module.exports = grammar({
     ...lists.rules,
     ...title.rules,
     ...table.rules,
-    block_element: $ => block_element($, $._doc_block),
+    // A section of any level may open at the document level, as Asciidoctor
+    // accepts a section out of sequence (see DESIGN_DECISIONS.md).
+    block_element: $ => block_element($, $._doc_block, LEVELS),
 
     // Document-level sections nest by heading level: a level-1 section (`==`)
     // contains its content plus any deeper sections, and each level closes
@@ -48,6 +50,8 @@ module.exports = grammar({
     // comments. Plain `_block_attrs` remain for a run holding a line it does
     // not look through, such as a `/// text` comment; that fallback works
     // only above the first heading, after an open section it is an error.
+    // `_in_section` only sets the states inside a section apart from those at
+    // the document level, see its declaration.
     _section1: $ =>
       prec.right(
         seq(
@@ -56,6 +60,7 @@ module.exports = grammar({
           repeat(
             choice(
               $._section_comment,
+              $._in_section,
               $.document_attr,
               alias($._doc_block, $.section_block),
               alias($._section2, $.section),
@@ -74,6 +79,7 @@ module.exports = grammar({
           repeat(
             choice(
               $._section_comment,
+              $._in_section,
               $.document_attr,
               alias($._doc_block, $.section_block),
               alias($._section3, $.section),
@@ -91,6 +97,7 @@ module.exports = grammar({
           repeat(
             choice(
               $._section_comment,
+              $._in_section,
               $.document_attr,
               alias($._doc_block, $.section_block),
               alias($._section4, $.section),
@@ -107,6 +114,7 @@ module.exports = grammar({
           repeat(
             choice(
               $._section_comment,
+              $._in_section,
               $.document_attr,
               alias($._doc_block, $.section_block),
               alias($._section5, $.section),
@@ -119,7 +127,7 @@ module.exports = grammar({
         seq(
           optional(choice($._section_attrs_5, $._block_attrs)),
           $.title5,
-          repeat(choice($._section_comment, $.document_attr, alias($._doc_block, $.section_block))),
+          repeat(choice($._section_comment, $._in_section, $.document_attr, alias($._doc_block, $.section_block))),
         ),
       ),
 
@@ -141,9 +149,10 @@ module.exports = grammar({
     _doc_block: $ => doc_block($, $.paragraph),
 
     // The block attached to a list item by a list continuation. It differs
-    // from a top-level block only in its paragraph, which also ends at a list
-    // line, where Asciidoctor starts the next item.
-    _list_block_element: $ => block_element($, $._list_doc_block),
+    // from a top-level block in its paragraph, which also ends at a list
+    // line, where Asciidoctor starts the next item, and in opening only a
+    // level-1 section.
+    _list_block_element: $ => block_element($, $._list_doc_block, [1]),
     _list_doc_block: $ => doc_block($, alias($._list_paragraph, $.paragraph)),
 
     // Container blocks (delimited/open/sidebar/quote/table cells) keep the flat
@@ -494,6 +503,16 @@ module.exports = grammar({
     ...LEVELS.map(n => $[`_section_attr_marker_${n}`]),
     ...LEVELS.map(n => $[`_section_title_marker_${n}`]),
     ...LEVELS.map(n => $[`_section_anchor_marker_${n}`]),
+    // A token the scanner never produces. It is valid only inside a section,
+    // so a parse state inside a section never shares its lexer mode with one
+    // at the document level, where a section of any level may open too.
+    // Tree-sitter reuses a token from the old tree in any state of the same
+    // lexer mode, and it does not note that the scanner turned the token down
+    // for its column: without the mark a line read as paragraph text in the
+    // middle of a line, after an error at the document level, came back after
+    // an edit at the start of a line inside a section, as text instead of the
+    // attribute line of the next heading.
+    $._in_section,
   ],
 });
 
@@ -522,15 +541,16 @@ function section_attrs_rules() {
   return rules;
 }
 
-// A top-level block: a document title or attribute, a section, a content
-// block (`doc_block`, aliased to `section_block`) or a comment.
-function block_element($, doc_block) {
+// A top-level block: a document title or attribute, a section of one of the
+// given `levels`, a content block (`doc_block`, aliased to `section_block`) or
+// a comment.
+function block_element($, doc_block, levels) {
   return prec.left(
     seq(
       choice(
         $.document_title,
         $.document_attr,
-        alias($._section1, $.section),
+        ...levels.map(n => alias($[`_section${n}`], $.section)),
         alias(doc_block, $.section_block),
         $.line_comment,
         $.block_comment,

@@ -63,6 +63,13 @@ An illegal level skip (for example `==` straight to `====`) still nests rather
 than erroring: a section body accepts any deeper section, and the innermost open
 section greedily claims a deeper heading.
 
+The same holds at the document level: a section of any level may open there,
+not only `==`. Asciidoctor accepts `=== B` directly below the document title,
+or at the start of a partial file, with a "section title out of sequence"
+warning, and keeps its level (`Parser.next_section`). So the tree keeps
+`title2` inside its `section`, and a following `==` closes it and becomes its
+sibling. Inside a list continuation only `==` opens a section, as before.
+
 ## `section_block` is the content wrapper, and it stayed
 
 `section_block` wraps a single content block (an optional attribute list / block
