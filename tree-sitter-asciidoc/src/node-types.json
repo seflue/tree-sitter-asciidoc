@@ -600,11 +600,6 @@
     }
   },
   {
-    "type": "firstname",
-    "named": true,
-    "fields": {}
-  },
-  {
     "type": "ident_block",
     "named": true,
     "fields": {},
@@ -641,11 +636,6 @@
         }
       ]
     }
-  },
-  {
-    "type": "lastname",
-    "named": true,
-    "fields": {}
   },
   {
     "type": "line",
@@ -791,11 +781,6 @@
         }
       ]
     }
-  },
-  {
-    "type": "middlename",
-    "named": true,
-    "fields": {}
   },
   {
     "type": "named_attr",
@@ -1624,10 +1609,6 @@
     "named": false
   },
   {
-    "type": "\\ ",
-    "named": false
-  },
-  {
     "type": "\\!",
     "named": false
   },
@@ -1645,10 +1626,6 @@
   },
   {
     "type": "\\:",
-    "named": false
-  },
-  {
-    "type": "\\;",
     "named": false
   },
   {
@@ -1772,6 +1749,10 @@
     "named": true
   },
   {
+    "type": "firstname",
+    "named": true
+  },
+  {
     "type": "hard_wrap",
     "named": true
   },
@@ -1781,6 +1762,10 @@
   },
   {
     "type": "ident_marker",
+    "named": true
+  },
+  {
+    "type": "lastname",
     "named": true
   },
   {
@@ -1825,6 +1810,10 @@
   },
   {
     "type": "literal_block_marker",
+    "named": true
+  },
+  {
+    "type": "middlename",
     "named": true
   },
   {

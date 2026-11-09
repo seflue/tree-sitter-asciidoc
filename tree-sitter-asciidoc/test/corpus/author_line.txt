@@ -169,3 +169,74 @@ The second author's last name is {lastname_2}.
       (section_block
         (paragraph
           (line))))))
+
+==================================
+one-word author line ends at its line
+==================================
+
+= T
+Jane
+
+== A
+
+x
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
+
+==========================================
+colon line without closing colon is the author
+==========================================
+
+= T
+:to
+:toc:
+
+== A
+
+=== B
+
+x
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section
+        (title2
+          (title_h2_marker)
+          (line))
+        (section_block
+          (paragraph
+            (line)))))))

@@ -11,15 +11,30 @@ exports.rules = {
       $._block_end,
     ),
   author_line: $ => anySep1($.author, seq(';', $._WHITE_SPACE)),
+  // A single name is an author too (Asciidoctor's AuthorInfoLineRx makes
+  // the last name optional).
   author: $ =>
     seq(
       alias($._author_line_word, $.firstname),
-      $._WHITE_SPACE,
-      optional(seq(alias($._author_line_word, $.middlename), $._WHITE_SPACE)),
-      alias($._author_line_word, $.lastname),
-      optional(seq($._WHITE_SPACE, '<', $.email, '>')),
+      optional(
+        seq(
+          $._WHITE_SPACE,
+          optional(seq(alias($._author_line_word, $.middlename), $._WHITE_SPACE)),
+          alias($._author_line_word, $.lastname),
+          optional(seq($._WHITE_SPACE, '<', $.email, '>')),
+        ),
+      ),
     ),
-  _author_line_word: $ => repeat1(escaped_ch(' ;', true)),
+  // One token, so the newline extra cannot slip into a name and carry the
+  // author line over the following lines. A name never starts with `<`,
+  // which opens the email.
+  _author_line_word: $ =>
+    token(
+      seq(
+        choice(/[^ ;<\r\n]/, '\\ ', '\\;'),
+        repeat(choice(/[^ ;\r\n]/, '\\ ', '\\;')),
+      ),
+    ),
   email: $ =>
     // biome-ignore lint/suspicious/noControlCharactersInRegex: xxx
     /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/,
