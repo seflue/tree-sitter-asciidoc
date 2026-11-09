@@ -35,11 +35,6 @@
     }
   },
   {
-    "type": "attr_name",
-    "named": true,
-    "fields": {}
-  },
-  {
     "type": "attribute_name",
     "named": true,
     "fields": {}
@@ -1690,6 +1685,10 @@
   },
   {
     "type": "admonition_warning",
+    "named": true
+  },
+  {
+    "type": "attr_name",
     "named": true
   },
   {

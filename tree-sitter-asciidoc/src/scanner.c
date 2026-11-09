@@ -437,7 +437,11 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                             }
                         }
                     }
-                    if(valid_symbols[TOKEN_DOCUMENT_ATTR_MARKER]) {
+                    // A line that is no attribute entry stays paragraph text.
+                    // A `=` run read by the DSV probe above opens no name,
+                    // since `=` is not a word character.
+                    if(valid_symbols[TOKEN_DOCUMENT_ATTR_MARKER] && lexer->get_column(lexer) == 1 &&
+                       rest_of_line_is_attr_entry(lexer)) {
                         lexer->result_symbol = TOKEN_DOCUMENT_ATTR_MARKER;
                         return true;
                     }
@@ -791,6 +795,27 @@ static inline bool is_anchor_id_start(i32 ch) {
 /// Whether an id may continue with `ch` (Asciidoctor: `[\p{Word}\-:.]`).
 static inline bool is_anchor_id_char(i32 ch) {
     return is_anchor_id_start(ch) || is_ascii_digit(ch) || ch == '-' || ch == '.';
+}
+
+/// With the lexer just past the leading `:`, read the rest of the line and say
+/// whether it completes an attribute entry: Asciidoctor's AttributeEntryRx,
+/// `:` + optional `!` + a word character + anything but `:` + `:`, then the end
+/// of the line or a space or tab before the value.
+static inline bool rest_of_line_is_attr_entry(TSLexer *lexer) {
+    if(lexer->lookahead == '!') {
+        lexer->advance(lexer, false);
+    }
+    if(!is_word_start(lexer->lookahead) && lexer->lookahead != '_') {
+        return false;
+    }
+    while(!lexer->eof(lexer) && !is_newline(lexer->lookahead) && lexer->lookahead != ':') {
+        lexer->advance(lexer, false);
+    }
+    if(lexer->lookahead != ':') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+    return lexer->eof(lexer) || is_newline(lexer->lookahead) || is_white_space(lexer->lookahead);
 }
 
 /// With the lexer just past `[[`, read the rest of the line and say whether

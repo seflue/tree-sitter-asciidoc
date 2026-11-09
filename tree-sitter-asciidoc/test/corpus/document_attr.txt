@@ -1,0 +1,125 @@
+==================================================
+colon line without closing colon is paragraph text
+==================================================
+
+:to
+// Expected: x
+
+Para.
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (line_comment
+      (line_comment_marker)
+      (body)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+=====================================================
+colon line without closing colon starts a paragraph
+=====================================================
+
+:to
+foo bar
+
+Para.
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+====================================================
+value glued to the closing colon is paragraph text
+====================================================
+
+:name:value
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+=====================================
+attribute entries with unset and tab
+=====================================
+
+:!a:
+:b!:
+:c:	tab value
+
+text
+
+--------
+
+(document
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+==============================================
+name opening with an equals sign is paragraph text
+==============================================
+
+== A
+
+:=foo:
+
+=== B
+
+x
+
+--------
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line)))
+      (section
+        (title2
+          (title_h2_marker)
+          (line))
+        (section_block
+          (paragraph
+            (line)))))))

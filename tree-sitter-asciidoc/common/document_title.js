@@ -39,11 +39,13 @@ exports.rules = {
   document_attr: $ =>
     seq(
       $.document_attr_marker,
-      alias(repeat1(escaped_ch(':', true)), $.attr_name),
+      // One token, so the newline extra cannot slip into the name. The
+      // scanner has already checked that the closing `:` is on this line.
+      alias(token.immediate(/[^:\r\n]+/), $.attr_name),
       alias(':', $.document_attr_marker),
       // The value may be absent after the separating space (`:sourceFile: `),
       // so the line itself is optional too.
-      optional(seq(token.immediate(' '), optional(alias($.escaped_line, $.line)))),
+      optional(seq(token.immediate(/[ \t]/), optional(alias($.escaped_line, $.line)))),
       $._block_end,
     ),
 };
