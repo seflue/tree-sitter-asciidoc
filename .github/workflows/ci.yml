@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - develop
   pull_request:
   workflow_dispatch:
 
@@ -34,3 +35,12 @@ jobs:
       - name: run test
         run: |
           pnpm test
+
+      # tree-sitter fuzz exits 0 even when an edit breaks the tree.
+      - name: check incremental parse of pinned cases
+        working-directory: tree-sitter-asciidoc
+        env:
+          TREE_SITTER_SEED: 1
+        run: |
+          pnpm exec tree-sitter fuzz -i 'page break belongs to the next section' --iterations 5000 --edits 1 | tee fuzz.log
+          ! grep -q 'Incorrect parse' fuzz.log
