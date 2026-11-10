@@ -189,3 +189,121 @@ image::foo.png[]
       (block_macro
         (block_macro_name)
         (target)))))
+
+==================
+block macro without attribute list is a paragraph
+==================
+
+== One
+
+image::foo.png
+
+Some text.
+
+== Two
+
+More.
+
+----
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line)))
+      (section_block
+        (paragraph
+          (line)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
+
+==================
+block macro with unclosed attribute list is a paragraph
+==================
+
+== One
+
+include::partial.adoc[leveloffset=+1
+
+== Two
+
+----
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+space before the attribute list makes a block macro a paragraph
+==================
+
+image::foo.png [Sunset]
+
+----
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+==================
+include without attribute list in a listing block is body text
+==================
+
+----
+include::foo.adoc
+----
+
+== Two
+
+----
+
+(document
+  (block_element
+    (section_block
+      (listing_block
+        (listing_block_start_marker)
+        (listing_block_body)
+        (listing_block_end_marker))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+target after a longer colon run may start with a space
+==================
+
+image::::: foo.png[]
+
+----
+
+(document
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)))))

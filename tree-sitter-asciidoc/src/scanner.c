@@ -148,7 +148,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
             if(valid_symbols[TOKEN_BLOCK_MACRO_NAME]) {
                 if(parse_sequence(lexer, "include")) {
                     lexer->mark_end(lexer);
-                    if(parse_sequence(lexer, "::")) {
+                    if(parse_sequence(lexer, "::") && scan_rest_is_block_macro(lexer, false)) {
                         lexer->result_symbol = TOKEN_BLOCK_MACRO_NAME;
                         return true;
                     }
@@ -179,7 +179,8 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                         lexer->result_symbol = TOKEN_TERM;
                         return true;
                     }
-                    if(valid_symbols[TOKEN_BLOCK_MACRO_NAME] && c == ':' && run >= 2) {
+                    if(valid_symbols[TOKEN_BLOCK_MACRO_NAME] && c == ':' && run >= 2 &&
+                       scan_rest_is_block_macro(lexer, run > 2)) {
                         lexer->result_symbol = TOKEN_BLOCK_MACRO_NAME;
                         return true;
                     }
@@ -1075,6 +1076,39 @@ static inline bool scan_opens_with_header_row(TSLexer *lexer) {
         lexer->advance(lexer, false);
     }
     return is_newline(lexer->lookahead);
+}
+
+/// A block macro is a whole line `name::target[attrs]`, close to how Asciidoctor matches it: the
+/// target neither starts with a space nor has one directly before the first `[`, and the line ends
+/// with the `]` that closes the attribute list.  Any other line is paragraph text, so a macro still
+/// being typed does not open a block that never closes.
+///
+/// Called with the lexer past the colons after the name, which has been marked, so everything read
+/// here is lookahead and widens nothing.  `target_started` says the colon run was longer than
+/// `::`, so the target already began with a `:` and may be followed by a space.
+static inline bool scan_rest_is_block_macro(TSLexer *lexer, bool target_started) {
+    if(!target_started && is_white_space(lexer->lookahead)) {
+        return false;
+    }
+
+    bool seen_open = false;
+    i32 prev = 0;
+    i32 last = 0;
+    while(!is_eof(lexer) && !is_newline(lexer->lookahead)) {
+        i32 ch = lexer->lookahead;
+        if(ch == '[' && !seen_open) {
+            if(is_white_space(prev)) {
+                return false;
+            }
+            seen_open = true;
+        }
+        if(!is_white_space(ch)) {
+            last = ch;
+        }
+        prev = ch;
+        lexer->advance(lexer, false);
+    }
+    return seen_open && last == ']';
 }
 
 static inline bool is_eof(TSLexer *lexer) {

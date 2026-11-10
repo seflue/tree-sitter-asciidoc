@@ -103,4 +103,5 @@ static inline bool is_geek_lower(i32 ch);
 static inline bool is_newline(i32 ch);
 static inline bool skip_line_ending(TSLexer *lexer);
 static inline bool scan_opens_with_header_row(TSLexer *lexer);
+static inline bool scan_rest_is_block_macro(TSLexer *lexer, bool target_started);
 static inline bool is_eof(TSLexer *lexer);
