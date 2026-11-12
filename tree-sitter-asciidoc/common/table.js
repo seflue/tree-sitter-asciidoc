@@ -1,4 +1,4 @@
-const { anySep1, escaped_ch, anySep } = require('../../common/common');
+const { anySep1, escaped_ch } = require('../../common/common');
 
 // One or more `cell`s separated by `sep`, where any cell may be empty but the
 // whole record may not (so a blank line is never mistaken for a row).
@@ -6,6 +6,34 @@ function dsvSep(sep, cell) {
   return choice(
     seq(cell, repeat(seq(sep, optional(cell)))),
     seq(sep, optional(cell), repeat(seq(sep, optional(cell)))),
+  );
+}
+
+// Prose in a cell is flat text that stops at the next `|`, as Asciidoctor
+// splits a table into cells before it parses their content.  A `paragraph`
+// node would run on to the end of its line and take the `| ...` line of the
+// next row as one of its own.
+function cellText($) {
+  return alias($._cell_text_after, $.table_cell_content);
+}
+
+// What may follow a block in a cell opened by `|` at the end of its line.
+// Blocks follow each other without a `+`, as they do anywhere else.  Text is
+// followed only by a block that announces itself with a marker (see
+// `_cell_block`): any other block start makes the scanner read into a line
+// like `a|next` and miss the cell specifier that opens the next cell.  For
+// the same reason `+` is a list continuation only after a block; after text
+// it is just more text.
+function cellTail($) {
+  return seq(
+    repeat(
+      choice(
+        alias($._cell_block, $.section_block),
+        seq($.list_continuation, alias($._section_block, $.section_block)),
+        seq(cellText($), alias($._cell_block, $.section_block)),
+      ),
+    ),
+    optional(cellText($)),
   );
 }
 
@@ -55,9 +83,14 @@ exports.rules = {
         seq(
           '|',
           token.immediate(/\r?\n/),
-          anySep(
-            alias($._section_block, $.section_block),
-            $.list_continuation,
+          // The first block may be any block, as before this cell could hold
+          // text; after text, only one that `cellTail` allows.
+          optional(
+            choice(
+              cellText($),
+              seq(alias($._section_block, $.section_block), cellTail($)),
+              seq(cellText($), alias($._cell_block, $.section_block), cellTail($)),
+            ),
           ),
         ),
         // A `| text` cell may carry block content after its text, as an
@@ -107,12 +140,27 @@ exports.rules = {
 
   // AsciiDoc promotes a table's first line to a header row when a blank line follows it,
   // which is also the layout `[%header]` and `options="header"` tables are written in.
+  // A first line whose last cell goes on after the gap is no header row: the cell simply
+  // continues, as in `a|` followed by a blank line and its first paragraph.
   // `_table_header_start` is a zero-width token the scanner emits only in that case; the
   // attribute list itself sits outside `table_block` and is not visible from here.
   // Settling the question before any cell is read keeps header and body cells out of one
   // parse state, so the two can end their content differently.
   table_header_row: $ =>
-    seq($._table_header_start, repeat1($.table_cell), $._table_header_row_end),
+    seq(
+      $._table_header_start,
+      choice(
+        seq(repeat1($.table_cell), optional(alias($._header_empty_cell, $.table_cell))),
+        alias($._header_empty_cell, $.table_cell),
+      ),
+      $._table_header_row_end,
+    ),
+  // A header line ending in `|` closes with an empty cell.  As a `table_cell`
+  // that `|` would take the line ending as the start of block content and
+  // leave `_table_header_row_end` without the newline it begins with.  Only
+  // the last cell may be empty in this way: anywhere else the empty cell would
+  // let `|a|b` read `a` as the next cell's specifier instead of as content.
+  _header_empty_cell: $ => seq(optional($.table_cell_attr), '|'),
   // Matched as one token so that it outruns the single character a cell's content would
   // otherwise take the first newline as.
   _table_header_row_end: _ => token(seq(/\r?\n/, /[ \t]*/, /\r?\n/)),

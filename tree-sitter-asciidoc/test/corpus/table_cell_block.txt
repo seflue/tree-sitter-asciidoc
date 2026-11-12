@@ -275,3 +275,424 @@ more prose
         (table_cell
           (table_cell_content))
         (table_block_marker)))))
+
+================|||
+text on the line after a bare cell separator
+================|||
+
+|===
+a|
+The cell starts on its own line.
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr)
+          (table_cell_content))
+        (table_block_marker)))))
+
+================|||
+paragraphs after a bare cell separator stay in one cell
+================|||
+
+|===
+a|
+First paragraph.
+
+Second paragraph.
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr)
+          (table_cell_content))
+        (table_block_marker)))))
+
+================|||
+blocks after a bare cell separator need no list continuation
+================|||
+
+|===
+a|
+....
+one
+....
+
+....
+two
+....
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr)
+          (section_block
+            (literal_block
+              (literal_block_marker)
+              (literal_block_body)
+              (literal_block_marker)))
+          (section_block
+            (literal_block
+              (literal_block_marker)
+              (literal_block_body)
+              (literal_block_marker))))
+        (table_block_marker)))))
+
+================|||
+text may follow a block after a bare cell separator
+================|||
+
+|===
+a|
+....
+literal
+....
+
+Text after the block.
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr)
+          (section_block
+            (literal_block
+              (literal_block_marker)
+              (literal_block_body)
+              (literal_block_marker)))
+          (table_cell_content))
+        (table_block_marker)))))
+
+================|||
+text after a bare cell separator ends at the next cell
+================|||
+
+|===
+|
+A paragraph cell.
+|next cell
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_content))
+        (table_cell
+          (table_cell_content))
+        (table_block_marker)))))
+
+================|||
+text after a bare cell separator ends at a separator mid-line
+================|||
+
+|===
+a|
+foo | bar
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr)
+          (table_cell_content))
+        (table_cell
+          (table_cell_content))
+        (table_block_marker)))))
+
+================|||
+a cell specifier after text opens the next cell
+================|||
+
+|===
+a|
+Text.
+a|next
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr)
+          (table_cell_content))
+        (table_cell
+          (table_cell_attr)
+          (table_cell_content))
+        (table_block_marker)))))
+
+================|||
+a lone plus after text stays text
+================|||
+
+|===
+a|
+First line.
++
+Second line.
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr)
+          (table_cell_content))
+        (table_block_marker)))))
+
+================|||
+a cell specifier after an empty cell opens the next cell
+================|||
+
+|===
+| x |
+a| foo
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_content))
+        (table_cell)
+        (table_cell
+          (table_cell_attr)
+          (table_cell_content))
+        (table_block_marker)))))
+
+================|||
+a column span after a bare cell separator opens the next cell
+================|||
+
+|===
+a|
+2+| bar
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr))
+        (table_cell
+          (table_cell_attr)
+          (table_cell_content))
+        (table_block_marker)))))
+
+================|||
+a centred cell after a bare cell separator opens the next cell
+================|||
+
+|===
+a|
+^| bar
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr))
+        (table_cell
+          (table_cell_attr)
+          (table_cell_content))
+        (table_block_marker)))))
+
+================|||
+a vertical alignment after a bare cell separator opens the next cell
+================|||
+
+|===
+a|
+.^| bar
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr))
+        (table_cell
+          (table_cell_attr)
+          (table_cell_content))
+        (table_block_marker)))))
+
+================|||
+a two-axis alignment after a bare cell separator opens the next cell
+================|||
+
+|===
+a|
+<.^| bar
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr))
+        (table_cell
+          (table_cell_attr)
+          (table_cell_content))
+        (table_block_marker)))))
+
+================|||
+a caret term after a bare cell separator stays a description list
+================|||
+
+|===
+a|
+^:: x
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr)
+          (section_block
+            (description_list
+              (description_list_item
+                (term)
+                (description_marker)
+                (line)))))
+        (table_block_marker)))))
+
+================|||
+a cell specifier before a bar in a nested table is text
+================|||
+
+|===
+a|
+!===
+!x
+z|q
+!===
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr))
+        (ntable_block
+          (ntable_block_marker)
+          (ntable_cell)
+          (ntable_block_marker))
+        (table_block_marker)))))
+
+================|||
+a letter before an exclamation mark in a cell is text
+================|||
+
+|===
+a|
+foo
+x! wow
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr)
+          (table_cell_content))
+        (table_block_marker)))))
+
+================|||
+a description term that reads like a cell specifier in a cell
+================|||
+
+|===
+a|
+2+:: def
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr)
+          (section_block
+            (description_list
+              (description_list_item
+                (term)
+                (description_marker)
+                (line)))))
+        (table_block_marker)))))

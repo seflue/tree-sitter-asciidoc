@@ -76,11 +76,24 @@ typedef enum TokenType {
     TOKEN_SECTION_ANCHOR_MARKER_5
 } TokenType;
 
-static inline bool parse_table_attr(TSLexer *lexer);
+/// How much of a cell specifier a line-start check consumed before handing over.
+typedef enum {
+    CELL_SPEC_START,
+    CELL_SPEC_AFTER_DIGITS,      // `2`
+    CELL_SPEC_AFTER_DIGITS_DOT,  // `2.`
+    CELL_SPEC_AFTER_DOT,         // `.`
+    CELL_SPEC_AFTER_ALIGN,       // `<`
+    CELL_SPEC_AFTER_ALIGN_DOT,   // `<.`
+    CELL_SPEC_AFTER_ALIGNMENT,   // `<.>`
+} CellSpecStart;
+
+static inline bool is_cell_align(i32 ch);
+static inline int scan_cell_spec_from(TSLexer *lexer, CellSpecStart from);
+static inline bool finish_cell_attr(TSLexer *lexer, const bool *valid_symbols, int spec);
 static inline bool parse_number(TSLexer *lexer);
 static inline bool parse_sequence_impl(TSLexer *lexer, char const *sequence, usize len);
 #define parse_sequence(lexer, sequence) parse_sequence_impl(lexer, sequence, sizeof(sequence) - 1)
-static inline bool parse_ordered_marker(TSLexer *lexer);
+static inline bool parse_ordered_marker(TSLexer *lexer, bool *dot_read);
 static inline bool parse_breaks(char start, TSLexer *lexer);
 static inline bool consume(i32 ch, TSLexer *lexer, bool skip_space, usize *counter, usize max);
 static inline bool skip_white_space(TSLexer *lexer);

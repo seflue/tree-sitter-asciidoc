@@ -108,6 +108,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
         // `T` of `TIP` advances the lexer, and the macro-name check below must
         // see the first character of the line, not the one after the match.
         bool is_alpha_lower = is_ascii_alpha_lower(lexer->lookahead);
+        bool is_digit = is_ascii_digit(lexer->lookahead);
         if(valid_symbols[TOKEN_ADMONITION_NOTE]) {
             do {
                 if(parse_sequence(lexer, "NOTE")) {
@@ -139,8 +140,17 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
         }
 
         if(valid_symbols[TOKEN_LIST_MARKER_ALPHA]) {
-            if(parse_ordered_marker(lexer)) {
+            bool dot_read;
+            if(parse_ordered_marker(lexer, &dot_read)) {
                 return true;
+            }
+            // The digits of `2+|` or `2.3+|` were read as a list label; in a table they begin
+            // the next cell's specifier.
+            if(valid_symbols[TOKEN_CELL_ATTR] && is_digit) {
+                CellSpecStart from = dot_read ? CELL_SPEC_AFTER_DIGITS_DOT : CELL_SPEC_AFTER_DIGITS;
+                if(finish_cell_attr(lexer, valid_symbols, scan_cell_spec_from(lexer, from))) {
+                    return true;
+                }
             }
         }
 
@@ -185,6 +195,14 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                         return true;
                     }
                 }
+            }
+        }
+
+        // One letter read by the checks above and then `|`: the style of the next cell, as in
+        // `a|`.
+        if(valid_symbols[TOKEN_CELL_ATTR] && is_alpha_lower && lexer->get_column(lexer) == 1) {
+            if(finish_cell_attr(lexer, valid_symbols, 1)) {
+                return true;
             }
         }
 
@@ -375,6 +393,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                 case '.': {
                     consume('.', lexer, false, NULL, USIZE_MAX);
                     lexer->mark_end(lexer);
+                    usize dots = lexer->get_column(lexer);
                     if(valid_symbols[TOKEN_LITERAL_BLOCK_MARKER]) {
                         usize counter = lexer->get_column(lexer);
                         if(counter >= 4 && is_newline(lexer->lookahead)) {
@@ -398,9 +417,17 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                         }
                     }
 
+                    // `.2+|` and `.^|` open a cell; anything else after a single `.` stays a
+                    // block title, whose marker `mark_end` above has already fixed at the `.`.
+                    if(valid_symbols[TOKEN_CELL_ATTR] && dots == 1 &&
+                       (is_ascii_digit(lexer->lookahead) || is_cell_align(lexer->lookahead))) {
+                        if(finish_cell_attr(lexer, valid_symbols, scan_cell_spec_from(lexer, CELL_SPEC_AFTER_DOT))) {
+                            return true;
+                        }
+                    }
+
                     if(valid_symbols[TOKEN_BLOCK_TITLE_MARKER]) {
-                        if(lexer->get_column(lexer) == 1) {
-                            lexer->mark_end(lexer);
+                        if(dots == 1) {
                             skip_rest_of_line(lexer);
                             lexer->result_symbol = section_marker(valid_symbols, TOKEN_SECTION_TITLE_MARKER_1,
                                                                   peek_heading_level(lexer), TOKEN_BLOCK_TITLE_MARKER);
@@ -500,9 +527,17 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                             return true;
                         }
                     }
+                    // What of `<`, `<.` or `<.>` has been read, for a left-aligned cell such
+                    // as `<|` or `<.^|` once neither a break nor a callout matched.
+                    CellSpecStart spec_from = CELL_SPEC_AFTER_ALIGN;
+                    bool spec_possible = lexer->get_column(lexer) == 1;
                     if(valid_symbols[TOKEN_CALLOUT_LIST_MARKER]) {
                         if(lexer->get_column(lexer) == 1) {
+                            if(lexer->lookahead == '.') {
+                                spec_from = CELL_SPEC_AFTER_ALIGN_DOT;
+                            }
                             if(parse_sequence(lexer, ".>")) {
+                                spec_from = CELL_SPEC_AFTER_ALIGNMENT;
                                 lexer->mark_end(lexer);
                                 lexer->result_symbol = TOKEN_CALLOUT_LIST_MARKER;
                                 if(is_white_space(lexer->lookahead)) {
@@ -510,6 +545,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                                 }
                             }
                             if(parse_number(lexer)) {
+                                spec_possible = false;
                                 if(lexer->lookahead == '>') {
                                     lexer->advance(lexer, false);
                                     lexer->mark_end(lexer);
@@ -519,6 +555,11 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                                     }
                                 }
                             }
+                        }
+                    }
+                    if(valid_symbols[TOKEN_CELL_ATTR] && spec_possible) {
+                        if(finish_cell_attr(lexer, valid_symbols, scan_cell_spec_from(lexer, spec_from))) {
+                            return true;
                         }
                     }
                     break;
@@ -629,6 +670,13 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                             return true;
                         }
                     }
+                    if(valid_symbols[TOKEN_CELL_ATTR]) {
+                        // `>|`, `>.^|`: a right-aligned cell, not a Markdown quote.
+                        CellSpecStart from = lexer->get_column(lexer) == 1 ? CELL_SPEC_AFTER_ALIGN : CELL_SPEC_START;
+                        if(finish_cell_attr(lexer, valid_symbols, scan_cell_spec_from(lexer, from))) {
+                            return true;
+                        }
+                    }
                     break;
                 }
                 case '+': {
@@ -672,8 +720,17 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
         // (where the scan began) to just before the delimiter run regardless
         // of how far earlier probes advanced the cursor.  When no marker is
         // found it returns false and the line stays an ordinary paragraph.
+        // `^` opens no other line-start construct, so a cell specifier like `^|` would only
+        // reach the end-of-scan check after the term probe below has read the whole line.
+        if(valid_symbols[TOKEN_CELL_ATTR] && lexer->get_column(lexer) == 0 && lexer->lookahead == '^') {
+            if(finish_cell_attr(lexer, valid_symbols, scan_cell_spec_from(lexer, CELL_SPEC_START))) {
+                return true;
+            }
+        }
+
+        // What the probes above read of the line, as `2+` in `2+:: def`, is term text.
         if(valid_symbols[TOKEN_TERM] && !scanner_is_matching_raw_block(s)) {
-            usize term_len = 0;
+            usize term_len = lexer->get_column(lexer);
             while(!is_newline(lexer->lookahead) && !is_eof(lexer)) {
                 i32 c = lexer->lookahead;
                 if((c == ':' || c == ';') && term_len > 0) {
@@ -763,17 +820,8 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
         start_pos == lexer->get_column(lexer) &&
         valid_symbols[TOKEN_CELL_ATTR]
     ) {
-        bool has_token = false;
-        while(parse_table_attr(lexer)) {
-            has_token = true;
-        }
-
-        if(has_token) {
-            if(lexer->lookahead == '|' || lexer->lookahead == '!') {
-                lexer->result_symbol = TOKEN_CELL_ATTR;
-                lexer->mark_end(lexer);
-                return true;
-            }
+        if(finish_cell_attr(lexer, valid_symbols, scan_cell_spec_from(lexer, CELL_SPEC_START))) {
+            return true;
         }
     }
 
@@ -950,7 +998,10 @@ static inline TokenType section_marker(const bool *valid_symbols, TokenType firs
     return fallback;
 }
 
-bool parse_ordered_marker(TSLexer *lexer) {
+/// `dot_read` reports whether the `.` after the label was consumed, which a caller reading the
+/// line on as a cell specifier needs when the marker turns out not to be one.
+bool parse_ordered_marker(TSLexer *lexer, bool *dot_read) {
+    *dot_read = false;
     if(lexer->get_column(lexer) != 0) {
         return false;
     }
@@ -974,6 +1025,7 @@ bool parse_ordered_marker(TSLexer *lexer) {
         return false;
     }
     lexer->advance(lexer, false);
+    *dot_read = true;
     if(!is_white_space(lexer->lookahead)) {
         return false;
     }
@@ -1039,7 +1091,8 @@ static inline bool skip_line_ending(TSLexer *lexer) {
     return true;
 }
 
-/// AsciiDoc promotes a table's first line to its header row when a blank line follows it.
+/// AsciiDoc promotes a table's first line to its header row when a blank line follows it and
+/// the first line after the gap opens a new cell.
 ///
 /// Called with the lexer sitting on the line ending of an opening `|===`, whose token has
 /// already been marked, so everything read here is lookahead and widens nothing.
@@ -1075,7 +1128,38 @@ static inline bool scan_opens_with_header_row(TSLexer *lexer) {
     while(is_white_space(lexer->lookahead)) {
         lexer->advance(lexer, false);
     }
-    return is_newline(lexer->lookahead);
+    if(!is_newline(lexer->lookahead)) {
+        return false;
+    }
+
+    // Asciidoctor drops the header again when the first line after the gap continues the
+    // first row's last cell instead of opening a new one: `a|` followed by a blank line and
+    // a paragraph is one AsciiDoc cell, not a header row.  Line comments are skipped, as
+    // Asciidoctor drops them from a table before reading its cells.
+    for(;;) {
+        while(is_white_space(lexer->lookahead)) {
+            lexer->advance(lexer, false);
+        }
+        if(skip_line_ending(lexer)) {
+            continue;
+        }
+        if(lexer->lookahead != '/') {
+            break;
+        }
+        lexer->advance(lexer, false);
+        if(lexer->lookahead != '/') {
+            return false;
+        }
+        lexer->advance(lexer, false);
+        if(lexer->lookahead == '/') {
+            return false;
+        }
+        skip_rest_of_line(lexer);
+    }
+    if(is_eof(lexer)) {
+        return true;
+    }
+    return scan_cell_spec_from(lexer, CELL_SPEC_START) >= 0 && lexer->lookahead == '|';
 }
 
 /// A block macro is a whole line `name::target[attrs]`, close to how Asciidoctor matches it: the
@@ -1167,51 +1251,117 @@ static inline bool parse_number(TSLexer *lexer) {
     return has_number;
 }
 
-char table_cell_attr_align_left = '<';
-char table_cell_attr_align_right = '>';
-char table_cell_attr_align_middle = '^';
-char table_cell_attr_style_none = 'd';
-char table_cell_attr_style_strong = 's';
-char table_cell_attr_style_emphasis = 'e';
-char table_cell_attr_style_monospaced = 'm';
-char table_cell_attr_style_header = 'h';
-char table_cell_attr_style_literal = 'l';
-char table_cell_attr_style_asciidoc = 'a';
+static inline bool is_cell_align(i32 ch) {
+    return ch == '<' || ch == '^' || ch == '>';
+}
 
-static inline bool parse_table_attr(TSLexer *lexer) {
-    if(lexer->lookahead == table_cell_attr_align_left ||
-       lexer->lookahead == table_cell_attr_align_right ||
-       lexer->lookahead == table_cell_attr_align_middle ||
-       lexer->lookahead == table_cell_attr_style_none ||
-       lexer->lookahead == table_cell_attr_style_strong ||
-       lexer->lookahead == table_cell_attr_style_emphasis ||
-       lexer->lookahead == table_cell_attr_style_monospaced ||
-       lexer->lookahead == table_cell_attr_style_header ||
-       lexer->lookahead == table_cell_attr_style_literal ||
-       lexer->lookahead == table_cell_attr_style_asciidoc) {
+/// A cell specifier as Asciidoctor's `CellSpecStartRx` reads it, in this order and each part
+/// optional: a span or duplication factor (`2+`, `.3+`, `2.3+`, `2.+`, `3*`), an alignment
+/// (`<`, `^.>`, `<.`, `.^`), a style letter (any of `a`-`z`; unknown styles are ignored but
+/// still mark a cell).  Returns -1 if what was read cannot be a specifier, 0 if nothing was
+/// read, 1 if a non-empty specifier was read; the caller checks for the `|` that must follow.
+///
+/// `from` says how much of the specifier a line-start check has already consumed before its
+/// own token failed, so that a line such as `2+|`, `.2+|` or `>|` still opens a cell.
+static inline int scan_cell_spec_from(TSLexer *lexer, CellSpecStart from) {
+    bool read = false;
+    bool digits = false;
+    bool dot = false;
+    bool align_open = false;  // one alignment character read; `.` may follow
+    bool align_dot = false;   // `<.` read; a second alignment character may follow
+    bool align_done = false;
+    switch(from) {
+        case CELL_SPEC_START:
+            digits = parse_number(lexer);
+            if(lexer->lookahead == '.') {
+                lexer->advance(lexer, false);
+                dot = true;
+                digits = parse_number(lexer) || digits;
+            }
+            break;
+        case CELL_SPEC_AFTER_DIGITS:
+            digits = true;
+            if(lexer->lookahead == '.') {
+                lexer->advance(lexer, false);
+                dot = true;
+                parse_number(lexer);
+            }
+            break;
+        case CELL_SPEC_AFTER_DIGITS_DOT:
+            digits = true;
+            dot = true;
+            parse_number(lexer);
+            break;
+        case CELL_SPEC_AFTER_DOT:
+            dot = true;
+            digits = parse_number(lexer);
+            break;
+        case CELL_SPEC_AFTER_ALIGN:
+            read = align_open = true;
+            break;
+        case CELL_SPEC_AFTER_ALIGN_DOT:
+            read = align_dot = true;
+            break;
+        case CELL_SPEC_AFTER_ALIGNMENT:
+            read = align_done = true;
+            break;
+    }
+
+    if(!align_open && !align_dot && !align_done) {
+        if(digits) {
+            if(lexer->lookahead != '+' && lexer->lookahead != '*') {
+                return -1;
+            }
+            lexer->advance(lexer, false);
+            read = true;
+            dot = false;
+        }
+        if(dot) {
+            // A `.` that began no span begins a vertical alignment, as in `.^`.
+            if(!is_cell_align(lexer->lookahead)) {
+                return -1;
+            }
+            lexer->advance(lexer, false);
+            read = true;
+        } else if(is_cell_align(lexer->lookahead)) {
+            lexer->advance(lexer, false);
+            read = align_open = true;
+        } else if(lexer->lookahead == '.') {
+            lexer->advance(lexer, false);
+            if(!is_cell_align(lexer->lookahead)) {
+                return -1;
+            }
+            lexer->advance(lexer, false);
+            read = true;
+        }
+    }
+    if(align_open && lexer->lookahead == '.') {
         lexer->advance(lexer, false);
+        align_dot = true;
+    }
+    if(align_dot && is_cell_align(lexer->lookahead)) {
+        lexer->advance(lexer, false);
+    }
+
+    if(is_ascii_alpha_lower(lexer->lookahead)) {
+        lexer->advance(lexer, false);
+        read = true;
+    }
+    return read ? 1 : 0;
+}
+
+/// Ends a `TOKEN_CELL_ATTR` here if `spec` read a specifier and the separator of the table it
+/// sits in follows: `|`, or `!` in a nested table.  Inside a `|===` cell, where the closing
+/// `|===` is valid, `x!` is text; inside a `!===` table, where only its own `!===` closes, so is
+/// `x|`.  Where neither marker tells (a header row, error recovery) both separators count.
+static inline bool finish_cell_attr(TSLexer *lexer, const bool *valid_symbols, int spec) {
+    bool in_psv = valid_symbols[TOKEN_TABLE_BLOCK_MARKER];
+    bool in_nested = valid_symbols[TOKEN_NTABLE_BLOCK_MARKER] && !in_psv;
+    if(spec > 0 && ((lexer->lookahead == '|' && !in_nested) || (lexer->lookahead == '!' && !in_psv))) {
+        lexer->mark_end(lexer);
+        lexer->result_symbol = TOKEN_CELL_ATTR;
         return true;
     }
-    // table_cell_span_vertical = /\.\d+\+/;
-    if(lexer->lookahead == '.') {
-        lexer->advance(lexer, false);
-        return parse_number(lexer);
-    }
-    // table_cell_span_width = /\d+\+/;
-    // table_cell_span_vw = /\d+\.\d+\+/;
-    if(parse_number(lexer)) {
-        if(lexer->lookahead == '.') {
-            lexer->advance(lexer, false);
-            if(!parse_number(lexer)) {
-                return false;
-            }
-        }
-        if(lexer->lookahead == '+') {
-            lexer->advance(lexer, false);
-            return true;
-        }
-    }
-
     return false;
 }
 

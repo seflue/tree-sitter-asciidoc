@@ -76,3 +76,26 @@ image::cat.png[Cat]
         (target)
         (block_macro_attr
           (attribute_name))))))
+
+=======================
+a description term may start with a digit or an angle bracket
+=======================
+
+2:: def
+
+<:: def
+
+---
+
+(document
+  (block_element
+    (section_block
+      (description_list
+        (description_list_item
+          (term)
+          (description_marker)
+          (line))
+        (description_list_item
+          (term)
+          (description_marker)
+          (line))))))

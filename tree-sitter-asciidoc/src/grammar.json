@@ -1138,37 +1138,213 @@
                   "type": "CHOICE",
                   "members": [
                     {
-                      "type": "SEQ",
+                      "type": "CHOICE",
                       "members": [
                         {
                           "type": "ALIAS",
                           "content": {
                             "type": "SYMBOL",
-                            "name": "_section_block"
+                            "name": "_cell_text_after"
                           },
                           "named": true,
-                          "value": "section_block"
+                          "value": "table_cell_content"
                         },
                         {
-                          "type": "REPEAT",
-                          "content": {
-                            "type": "SEQ",
-                            "members": [
-                              {
+                          "type": "SEQ",
+                          "members": [
+                            {
+                              "type": "ALIAS",
+                              "content": {
                                 "type": "SYMBOL",
-                                "name": "list_continuation"
+                                "name": "_section_block"
                               },
-                              {
-                                "type": "ALIAS",
-                                "content": {
-                                  "type": "SYMBOL",
-                                  "name": "_section_block"
+                              "named": true,
+                              "value": "section_block"
+                            },
+                            {
+                              "type": "SEQ",
+                              "members": [
+                                {
+                                  "type": "REPEAT",
+                                  "content": {
+                                    "type": "CHOICE",
+                                    "members": [
+                                      {
+                                        "type": "ALIAS",
+                                        "content": {
+                                          "type": "SYMBOL",
+                                          "name": "_cell_block"
+                                        },
+                                        "named": true,
+                                        "value": "section_block"
+                                      },
+                                      {
+                                        "type": "SEQ",
+                                        "members": [
+                                          {
+                                            "type": "SYMBOL",
+                                            "name": "list_continuation"
+                                          },
+                                          {
+                                            "type": "ALIAS",
+                                            "content": {
+                                              "type": "SYMBOL",
+                                              "name": "_section_block"
+                                            },
+                                            "named": true,
+                                            "value": "section_block"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "type": "SEQ",
+                                        "members": [
+                                          {
+                                            "type": "ALIAS",
+                                            "content": {
+                                              "type": "SYMBOL",
+                                              "name": "_cell_text_after"
+                                            },
+                                            "named": true,
+                                            "value": "table_cell_content"
+                                          },
+                                          {
+                                            "type": "ALIAS",
+                                            "content": {
+                                              "type": "SYMBOL",
+                                              "name": "_cell_block"
+                                            },
+                                            "named": true,
+                                            "value": "section_block"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
                                 },
-                                "named": true,
-                                "value": "section_block"
-                              }
-                            ]
-                          }
+                                {
+                                  "type": "CHOICE",
+                                  "members": [
+                                    {
+                                      "type": "ALIAS",
+                                      "content": {
+                                        "type": "SYMBOL",
+                                        "name": "_cell_text_after"
+                                      },
+                                      "named": true,
+                                      "value": "table_cell_content"
+                                    },
+                                    {
+                                      "type": "BLANK"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "SEQ",
+                          "members": [
+                            {
+                              "type": "ALIAS",
+                              "content": {
+                                "type": "SYMBOL",
+                                "name": "_cell_text_after"
+                              },
+                              "named": true,
+                              "value": "table_cell_content"
+                            },
+                            {
+                              "type": "ALIAS",
+                              "content": {
+                                "type": "SYMBOL",
+                                "name": "_cell_block"
+                              },
+                              "named": true,
+                              "value": "section_block"
+                            },
+                            {
+                              "type": "SEQ",
+                              "members": [
+                                {
+                                  "type": "REPEAT",
+                                  "content": {
+                                    "type": "CHOICE",
+                                    "members": [
+                                      {
+                                        "type": "ALIAS",
+                                        "content": {
+                                          "type": "SYMBOL",
+                                          "name": "_cell_block"
+                                        },
+                                        "named": true,
+                                        "value": "section_block"
+                                      },
+                                      {
+                                        "type": "SEQ",
+                                        "members": [
+                                          {
+                                            "type": "SYMBOL",
+                                            "name": "list_continuation"
+                                          },
+                                          {
+                                            "type": "ALIAS",
+                                            "content": {
+                                              "type": "SYMBOL",
+                                              "name": "_section_block"
+                                            },
+                                            "named": true,
+                                            "value": "section_block"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "type": "SEQ",
+                                        "members": [
+                                          {
+                                            "type": "ALIAS",
+                                            "content": {
+                                              "type": "SYMBOL",
+                                              "name": "_cell_text_after"
+                                            },
+                                            "named": true,
+                                            "value": "table_cell_content"
+                                          },
+                                          {
+                                            "type": "ALIAS",
+                                            "content": {
+                                              "type": "SYMBOL",
+                                              "name": "_cell_block"
+                                            },
+                                            "named": true,
+                                            "value": "section_block"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "type": "CHOICE",
+                                  "members": [
+                                    {
+                                      "type": "ALIAS",
+                                      "content": {
+                                        "type": "SYMBOL",
+                                        "name": "_cell_text_after"
+                                      },
+                                      "named": true,
+                                      "value": "table_cell_content"
+                                    },
+                                    {
+                                      "type": "BLANK"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
                         }
                       ]
                     },
@@ -1328,15 +1504,72 @@
           "name": "_table_header_start"
         },
         {
-          "type": "REPEAT1",
-          "content": {
-            "type": "SYMBOL",
-            "name": "table_cell"
-          }
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "REPEAT1",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "table_cell"
+                  }
+                },
+                {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "ALIAS",
+                      "content": {
+                        "type": "SYMBOL",
+                        "name": "_header_empty_cell"
+                      },
+                      "named": true,
+                      "value": "table_cell"
+                    },
+                    {
+                      "type": "BLANK"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_header_empty_cell"
+              },
+              "named": true,
+              "value": "table_cell"
+            }
+          ]
         },
         {
           "type": "SYMBOL",
           "name": "_table_header_row_end"
+        }
+      ]
+    },
+    "_header_empty_cell": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "table_cell_attr"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "|"
         }
       ]
     },
