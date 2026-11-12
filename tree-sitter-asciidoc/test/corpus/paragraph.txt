@@ -333,7 +333,7 @@ word word word word word word word word word word word word word word word word 
         (line)))))
 
 ====================|||
-paragraph: a line containing a double colon ends the paragraph
+paragraph: a line containing a double colon continues the paragraph
 ====================|||
 
 Some prose
@@ -345,10 +345,7 @@ use std::vector here
   (block_element
     (section_block
       (paragraph
-        (line))))
-  (block_element
-    (section_block
-      (paragraph
+        (line)
         (line)))))
 
 ====================|||
@@ -693,3 +690,54 @@ more text
       (paragraph
         (line)
         (line)))))
+
+====================|||
+paragraph: doubled colons or semicolons inside prose continue it
+====================|||
+
+Some prose
+see a::b and foo;;bar here
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line)))))
+
+====================|||
+paragraph: an unfinished block macro line continues the paragraph
+====================|||
+
+Some prose
+image::pic.png
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line)))))
+
+====================|||
+paragraph: a double colon in a list item's next line stays in the item
+====================|||
+
+* item
+uses std::vector here
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_star))
+            (line)))))))

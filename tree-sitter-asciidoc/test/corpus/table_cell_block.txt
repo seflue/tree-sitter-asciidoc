@@ -696,3 +696,33 @@ a|
                 (description_marker)
                 (line)))))
         (table_block_marker)))))
+
+================|||
+a cell specifier with a span opens a cell after a description list item
+================|||
+
+|===
+a|
+x:: word
+2+|d
+|===
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr)
+          (section_block
+            (description_list
+              (description_list_item
+                (term)
+                (description_marker)
+                (line)))))
+        (table_cell
+          (table_cell_attr)
+          (table_cell_content))
+        (table_block_marker)))))

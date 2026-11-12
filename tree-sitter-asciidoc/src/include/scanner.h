@@ -45,6 +45,7 @@ static inline bool scanner_is_expect_block_start(Scanner const *self);
  * @return true if matched.
  */
 static inline bool scanner_is_matching(Scanner const *self, BlockKind kind, usize counter);
+static inline bool scanner_in_table(Scanner const *self);
 static inline Result scanner_serialize(Scanner const *self, QuickBuffer *qb);
 static inline Result scanner_deserialize(Scanner *self, QuickBuffer *qb);
 /**

@@ -94,9 +94,10 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
     if((valid_symbols[TOKEN_PARAGRAPH_SOFT_BREAK] || valid_symbols[TOKEN_LIST_PARAGRAPH_SOFT_BREAK]) &&
        is_newline(lexer->lookahead)) {
         bool in_list = valid_symbols[TOKEN_LIST_PARAGRAPH_SOFT_BREAK];
+        bool in_table = scanner_in_table(s);
         skip_line_ending(lexer);
         lexer->mark_end(lexer);
-        if(continues_paragraph(lexer, in_list)) {
+        if(continues_paragraph(lexer, in_list, in_table)) {
             lexer->result_symbol = in_list ? TOKEN_LIST_PARAGRAPH_SOFT_BREAK : TOKEN_PARAGRAPH_SOFT_BREAK;
             return true;
         }
@@ -722,7 +723,10 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
         // found it returns false and the line stays an ordinary paragraph.
         // `^` opens no other line-start construct, so a cell specifier like `^|` would only
         // reach the end-of-scan check after the term probe below has read the whole line.
-        if(valid_symbols[TOKEN_CELL_ATTR] && lexer->get_column(lexer) == 0 && lexer->lookahead == '^') {
+        // So would the digits of `2+|` where no list label is valid, as after a description
+        // list item.
+        if(valid_symbols[TOKEN_CELL_ATTR] && lexer->get_column(lexer) == 0 &&
+           (lexer->lookahead == '^' || is_ascii_digit(lexer->lookahead))) {
             if(finish_cell_attr(lexer, valid_symbols, scan_cell_spec_from(lexer, CELL_SPEC_START))) {
                 return true;
             }
@@ -1376,6 +1380,15 @@ static inline bool scanner_is_matching(Scanner const *self, BlockKind kind, usiz
     }
     return top->kind == kind && top->counter == counter;
 }
+/// Whether a `|===` table is open, at any depth of the blocks opened inside its cells.
+static inline bool scanner_in_table(Scanner const *self) {
+    for(usize i = 0; i < self->len; i++) {
+        if(self->buffer[i].kind == BLOCK_KIND_TABLE) {
+            return true;
+        }
+    }
+    return false;
+}
 static inline Result scanner_serialize(Scanner const *self, QuickBuffer *qb) {
     Result ret = RESULT_OK;
 
@@ -1480,7 +1493,7 @@ static inline bool is_word_start(i32 ch) {
 
 /// Reads the line the lexer is on, which the caller has already marked as lookahead,
 /// and says whether it is prose that continues a paragraph.
-static inline bool continues_paragraph(TSLexer *lexer, bool in_list) {
+static inline bool continues_paragraph(TSLexer *lexer, bool in_list, bool in_table) {
     i32 line[PARAGRAPH_PEEK];
     usize len = 0;
     while(!lexer->eof(lexer) && !is_newline(lexer->lookahead)) {
@@ -1490,7 +1503,7 @@ static inline bool continues_paragraph(TSLexer *lexer, bool in_list) {
         line[len++] = lexer->lookahead;
         lexer->advance(lexer, false);
     }
-    return is_prose_line(line, len, in_list);
+    return is_prose_line(line, len, in_list, in_table);
 }
 
 /// Whether an unindented `line` opens a list item: the list part of
@@ -1582,10 +1595,16 @@ static inline bool is_dlist_line(i32 const *line, usize len) {
 /// Conservative: a line is prose only when nothing about it could open a block.
 /// Asciidoctor does not end a paragraph at a list or description list line,
 /// so those join the paragraph, unless the paragraph is attached to a list
-/// item (`in_list`), where such a line starts the next item.
-static inline bool is_prose_line(i32 const *line, usize len, bool in_list) {
+/// item (`in_list`), where such a line starts the next item.  In a table
+/// (`in_table`) a line opening the next cell is no prose either, as
+/// Asciidoctor splits a table into cells before it reads their content.
+static inline bool is_prose_line(i32 const *line, usize len, bool in_list, bool in_table) {
     // Blank or indented.
     if(len == 0 || is_white_space(line[0])) {
+        return false;
+    }
+
+    if(in_table && is_cell_start_line(line, len)) {
         return false;
     }
 
@@ -1613,14 +1632,85 @@ static inline bool is_prose_line(i32 const *line, usize len, bool in_list) {
         }
     }
 
-    // What is left with a doubled `:` or `;` is not a description list term:
-    // block macros (`image::x[]`), preprocessor directives (`ifdef::x[]`) and
-    // prose such as `std::vector`. These still end the paragraph.
-    for(usize i = 1; i < len; i++) {
-        if((line[i] == ':' && line[i - 1] == ':') || (line[i] == ';' && line[i - 1] == ';')) {
-            return false;
+    // A block macro (`image::x[]`) or preprocessor directive (`ifdef::x[]`) ends the
+    // paragraph; any other doubled `:` or `;`, as in `std::vector`, is prose.
+    return !is_block_macro_line(line, len);
+}
+
+/// Whether an unindented `line` opens a table cell: a non-empty cell specifier as
+/// Asciidoctor's CellSpecStartRx reads it, directly followed by `|`.  A line opening
+/// with `|` itself never reaches this check.
+static inline bool is_cell_start_line(i32 const *line, usize len) {
+    usize i = 0;
+    // Span or duplication factor: `2+`, `2.3+`, `.3+`, `2.+`, `3*`.
+    usize j = 0;
+    bool digits = false;
+    while(j < len && is_ascii_digit(line[j])) {
+        j++;
+        digits = true;
+    }
+    if(j < len && line[j] == '.') {
+        j++;
+        while(j < len && is_ascii_digit(line[j])) {
+            j++;
+            digits = true;
         }
     }
+    if(digits && j < len && (line[j] == '+' || line[j] == '*')) {
+        i = j + 1;
+    }
+    // Alignment: `<`, `<.`, `<.^`, `.^`.
+    if(i < len && is_cell_align(line[i])) {
+        i++;
+        if(i < len && line[i] == '.') {
+            i++;
+            if(i < len && is_cell_align(line[i])) {
+                i++;
+            }
+        }
+    } else if(i + 1 < len && line[i] == '.' && is_cell_align(line[i + 1])) {
+        i += 2;
+    }
+    // Style.
+    if(i < len && is_ascii_alpha_lower(line[i])) {
+        i++;
+    }
+    return i > 0 && i < len && line[i] == '|';
+}
 
-    return true;
+/// Whether `line` has the shape the scanner accepts as a block macro: a lowercase name, a run
+/// of two or more colons, then what `scan_rest_is_block_macro` accepts as target and
+/// attribute list.
+static inline bool is_block_macro_line(i32 const *line, usize len) {
+    usize i = 0;
+    while(i < len && is_ascii_alpha_lower(line[i])) {
+        i++;
+    }
+    usize colons = 0;
+    while(i + colons < len && line[i + colons] == ':') {
+        colons++;
+    }
+    if(i == 0 || colons < 2) {
+        return false;
+    }
+    i += colons;
+    if(colons == 2 && i < len && is_white_space(line[i])) {
+        return false;
+    }
+    bool seen_open = false;
+    i32 prev = 0;
+    i32 last = 0;
+    for(; i < len; i++) {
+        if(line[i] == '[' && !seen_open) {
+            if(is_white_space(prev)) {
+                return false;
+            }
+            seen_open = true;
+        }
+        if(!is_white_space(line[i])) {
+            last = line[i];
+        }
+        prev = line[i];
+    }
+    return seen_open && last == ']';
 }
