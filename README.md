@@ -1,22 +1,16 @@
 # tree-sitter-asciidoc
 
-[![tree-sitter-asciidoc on crates.io](https://img.shields.io/crates/v/tree-sitter-asciidoc?label=tree-sitter-asciidoc)](https://crates.io/crates/tree-sitter-asciidoc)
-[![tree-sitter-asciidoc-inline on crates.io](https://img.shields.io/crates/v/tree-sitter-asciidoc-inline?label=tree-sitter-asciidoc-inline)](https://crates.io/crates/tree-sitter-asciidoc-inline)
-
 [tree-sitter](https://tree-sitter.github.io/tree-sitter/) grammar for [AsciiDoc](https://docs.asciidoctor.org/asciidoc/latest/).
 
 ## About this fork
 
-This is a fork of [cathaysia/tree-sitter-asciidoc](https://github.com/cathaysia/tree-sitter-asciidoc). Upstream was archived and made read-only in October 2026, so this fork is now maintained independently, on its `master` branch, for two projects that depend on it:
+This is a fork of [cathaysia/tree-sitter-asciidoc](https://github.com/cathaysia/tree-sitter-asciidoc), which was archived and made read-only in October 2026, and has been maintained here since then. It also takes in changes from [bovinemagnet/tree-sitter-asciidoc](https://github.com/bovinemagnet/tree-sitter-asciidoc), which continues cathaysia's grammar on its `master` branch.
 
-- [zed-asciidoc-antora](https://github.com/bovinemagnet/zed-asciidoc-antora), the AsciiDoc and Antora extension for the Zed editor
-- [AdocFoundry](https://github.com/bovinemagnet/AdocFoundry), a desktop editor for AsciiDoc and Antora documentation
+Two projects use it:
 
-Both pin the grammars to a commit on `master`. As well as everything upstream released, `master` carries changes upstream never took:
+- [asciidoc-lsp](https://github.com/seflue/asciidoc-lsp), an AsciiDoc language server, which includes the grammar as a git submodule pinned to a commit
+- [asciidoc.nvim](https://github.com/seflue/asciidoc.nvim), the Neovim plugin, which pins a commit for nvim-treesitter
 
-- a `table_header_row` node, so a table's header row can be styled apart from its body
-- table cells written as `| text` that can carry block content, such as an admonition or a listing, with the cell's text resuming after the block
+On top of bovinemagnet's `master`, this fork changes how some constructs parse, to follow Asciidoctor more closely ([compare](https://github.com/bovinemagnet/tree-sitter-asciidoc/compare/master...seflue:tree-sitter-asciidoc:main)).
 
-The crates.io packages linked above are upstream's releases and include none of these changes. To use this fork, depend on this repository at a commit on `master`.
-
-Please report issues and send pull requests to this repository rather than upstream.
+The crates.io packages are cathaysia's releases and include none of bovinemagnet's or this fork's changes. This fork has no releases of its own: to use it, depend on this repository at a commit on `main`.
