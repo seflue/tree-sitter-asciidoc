@@ -75,7 +75,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
             return false;
         }
         if(parse_sequence(lexer, "////")) {
-            if(is_newline(lexer->lookahead)) {
+            if(delimiter_line_ends(lexer, false)) {
                 lexer->result_symbol = TOKEN_BLOCK_COMMENT_END_MARKER;
                 return true;
             }
@@ -212,9 +212,12 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                 case '=': {
                     consume('=', lexer, false, NULL, USIZE_MAX);
                     lexer->mark_end(lexer);
+                    usize run = lexer->get_column(lexer);
+                    bool blank_follows = is_white_space(lexer->lookahead);
                     if(!scanner_is_matching_raw_block(s)) {
-                        usize counter = lexer->get_column(lexer);
-                        if(counter >= 4 && is_new_line(lexer->lookahead)) {
+                        usize counter = run;
+                        if(counter >= 4 && delimiter_line_ends(lexer, false)) {
+                            lexer->mark_end(lexer);
                             if(scanner_is_matching(s, BLOCK_KIND_DELIMITED, counter)) {
                                 lexer->result_symbol = TOKEN_DELIMITED_BLOCK_END_MARKER;
                                 scanner_pop(s);
@@ -227,8 +230,8 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                     }
 
                     if(!scanner_is_matching_raw_block(s)) {
-                        usize level = TOKEN_TITLE_H0_MARKER - 1 + lexer->get_column(lexer);
-                        if(level <= TOKEN_TITLE_H5_MARKER && is_white_space(lexer->lookahead)) {
+                        usize level = TOKEN_TITLE_H0_MARKER - 1 + run;
+                        if(level <= TOKEN_TITLE_H5_MARKER && blank_follows) {
                             lexer->result_symbol = level;
                             return true;
                         }
@@ -258,7 +261,8 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
 
                     if(valid_symbols[TOKEN_SIDEBAR_BLOCK_START_MARKER] || valid_symbols[TOKEN_SIDEBAR_BLOCK_END_MARKER]) {
                         usize col = lexer->get_column(lexer);
-                        if(col >= 4 && (is_new_line(lexer->lookahead) || is_eof(lexer))) {
+                        if(col >= 4 && delimiter_line_ends(lexer, true)) {
+                            lexer->mark_end(lexer);
                             if(scanner_is_matching(s, BLOCK_KIND_SIDEBAR, col)) {
                                 scanner_pop(s);
                                 lexer->result_symbol = TOKEN_SIDEBAR_BLOCK_END_MARKER;
@@ -302,23 +306,26 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                     consume('-', lexer, false, &counter, USIZE_MAX);
                     lexer->mark_end(lexer);
                     bool is_unordered_marker = is_white_space(lexer->lookahead);
+                    usize run = lexer->get_column(lexer);
                     if(valid_symbols[TOKEN_OPEN_BLOCK_MARKER]) {
-                        if(lexer->get_column(lexer) == 2 && is_newline(lexer->lookahead)) {
+                        if(run == 2 && delimiter_line_ends(lexer, false)) {
+                            lexer->mark_end(lexer);
                             lexer->result_symbol = TOKEN_OPEN_BLOCK_MARKER;
                             return true;
                         }
                     }
 
                     if(valid_symbols[TOKEN_QUOTED_PARAGRAPH_MARKER]) {
-                        if(lexer->get_column(lexer) == 2 && is_white_space(lexer->lookahead)) {
+                        if(run == 2 && is_unordered_marker) {
                             lexer->result_symbol = TOKEN_QUOTED_PARAGRAPH_MARKER;
                             return true;
                         }
                     }
 
                     if(valid_symbols[TOKEN_LISTING_BLOCK_START_MARKER] || valid_symbols[TOKEN_LISTING_BLOCK_END_MARKER]) {
-                        usize counter = lexer->get_column(lexer);
-                        if(counter >= 4 && is_newline(lexer->lookahead)) {
+                        usize counter = run;
+                        if(counter >= 4 && delimiter_line_ends(lexer, false)) {
+                            lexer->mark_end(lexer);
                             if(scanner_is_matching(s, BLOCK_KIND_LISTING, counter)) {
                                 scanner_pop(s);
                                 lexer->result_symbol = TOKEN_LISTING_BLOCK_END_MARKER;
@@ -369,8 +376,8 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                         valid_symbols[TOKEN_LISTING_BLOCK_END_MARKER]) &&
                        counter >= 3) {
                         if(scanner_is_matching(s, BLOCK_KIND_FENCED, counter)) {
-                            // Closing fence: bare backticks only.
-                            if(is_newline(lexer->lookahead) || is_eof(lexer)) {
+                            // Closing fence: bare backticks only, blanks aside.
+                            if(delimiter_line_ends(lexer, true)) {
                                 lexer->mark_end(lexer);
                                 scanner_pop(s);
                                 lexer->result_symbol = TOKEN_LISTING_BLOCK_END_MARKER;
@@ -395,9 +402,11 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                     consume('.', lexer, false, NULL, USIZE_MAX);
                     lexer->mark_end(lexer);
                     usize dots = lexer->get_column(lexer);
+                    bool blank_follows = is_white_space(lexer->lookahead);
                     if(valid_symbols[TOKEN_LITERAL_BLOCK_MARKER]) {
-                        usize counter = lexer->get_column(lexer);
-                        if(counter >= 4 && is_newline(lexer->lookahead)) {
+                        usize counter = dots;
+                        if(counter >= 4 && delimiter_line_ends(lexer, false)) {
+                            lexer->mark_end(lexer);
                             if(scanner_is_matching(s, BLOCK_KIND_LITERAL, counter)) {
                                 scanner_pop(s);
                                 lexer->result_symbol = TOKEN_LITERAL_BLOCK_MARKER;
@@ -411,8 +420,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                     }
 
                     if(valid_symbols[TOKEN_LIST_MARKER_DOT]) {
-                        if(is_white_space(lexer->lookahead)) {
-                            lexer->mark_end(lexer);
+                        if(blank_follows) {
                             lexer->result_symbol = TOKEN_LIST_MARKER_DOT;
                             return true;
                         }
@@ -450,7 +458,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                             lexer->advance(lexer, false);
                             ++counter;
                         }
-                        if(counter >= 3 && is_newline(lexer->lookahead)) {
+                        if(counter >= 3 && delimiter_line_ends(lexer, false)) {
                             if(scanner_is_matching(s, BLOCK_KIND_DSV_TABLE, 0)) {
                                 if(scanner_is_matching(s, BLOCK_KIND_DSV_TABLE, counter)) {
                                     lexer->mark_end(lexer);
@@ -573,7 +581,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                         lexer->advance(lexer, false);
                         usize counter = 0;
                         consume('=', lexer, false, &counter, USIZE_MAX);
-                        if(counter >= 3 && is_newline(lexer->lookahead)) {
+                        if(counter >= 3 && delimiter_line_ends(lexer, false)) {
                             if(scanner_is_matching(s, BLOCK_KIND_CSV_TABLE, 0)) {
                                 if(scanner_is_matching(s, BLOCK_KIND_CSV_TABLE, counter)) {
                                     lexer->mark_end(lexer);
@@ -596,7 +604,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                         lexer->advance(lexer, false);
                         usize counter = 0;
                         consume('=', lexer, false, &counter, USIZE_MAX);
-                        if(counter >= 3 && is_newline(lexer->lookahead)) {
+                        if(counter >= 3 && delimiter_line_ends(lexer, false)) {
                             if(scanner_is_matching(s, BLOCK_KIND_TABLE, 0)) {
                                 if(scanner_is_matching(s, BLOCK_KIND_TABLE, counter)) {
                                     lexer->mark_end(lexer);
@@ -618,8 +626,10 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                 case '!': {  // NTable
                     if(valid_symbols[TOKEN_NTABLE_BLOCK_MARKER]) {
                         lexer->advance(lexer, false);
-                        consume('=', lexer, false, NULL, USIZE_MAX);
-                        if(is_newline(lexer->lookahead)) {
+                        usize equals = 0;
+                        consume('=', lexer, false, &equals, USIZE_MAX);
+                        // Blanks may follow three or more `=`, not a lone `!`.
+                        if(equals >= 3 ? delimiter_line_ends(lexer, false) : is_newline(lexer->lookahead)) {
                             lexer->mark_end(lexer);
                             lexer->result_symbol = TOKEN_NTABLE_BLOCK_MARKER;
                             return true;
@@ -634,7 +644,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                             lexer->mark_end(lexer);
                             if(valid_symbols[TOKEN_BLOCK_COMMENT_START_MARKER]) {
                                 if(parse_sequence(lexer, "//")) {
-                                    if(is_newline(lexer->lookahead)) {
+                                    if(delimiter_line_ends(lexer, false)) {
                                         lexer->result_symbol = TOKEN_BLOCK_COMMENT_START_MARKER;
                                         lexer->mark_end(lexer);
                                         return true;
@@ -652,7 +662,8 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                         consume('_', lexer, false, NULL, USIZE_MAX);
                         lexer->mark_end(lexer);
                         usize counter = lexer->get_column(lexer);
-                        if(counter >= 4 && (is_newline(lexer->lookahead) || is_eof(lexer))) {
+                        if(counter >= 4 && delimiter_line_ends(lexer, true)) {
+                            lexer->mark_end(lexer);
                             if(scanner_is_matching(s, BLOCK_KIND_QUOTED, counter)) {
                                 scanner_pop(s);
                                 lexer->result_symbol = TOKEN_QUOTED_BLOCK_END_MARKER;
@@ -696,7 +707,8 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                         if(parse_sequence(lexer, "+++")) {
                             lexer->mark_end(lexer);
                             lexer->result_symbol = TOKEN_PASSTHROUGH_BLOCK_MARKER;
-                            if(is_new_line(lexer->lookahead) || is_eof(lexer)) {
+                            if(delimiter_line_ends(lexer, true)) {
+                                lexer->mark_end(lexer);
                                 return true;
                             }
                         }
@@ -955,7 +967,12 @@ static inline int peek_heading_level(TSLexer *lexer) {
             if(run == 1 && is_white_space(lexer->lookahead)) {
                 return HEADING_LEVEL_DOC_TITLE;
             }
-            return run >= 2 && run <= 6 && is_white_space(lexer->lookahead) ? run - 1 : 0;
+            // `====` and longer with only blanks behind it is a delimiter line, not a heading.
+            bool blank_follows = is_white_space(lexer->lookahead);
+            if(c == '=' && run >= 4 && delimiter_line_ends(lexer, false)) {
+                return 0;
+            }
+            return run >= 2 && run <= 6 && blank_follows ? run - 1 : 0;
         }
         if(c == '[') {
             lexer->advance(lexer, false);
@@ -1005,11 +1022,11 @@ static inline int peek_heading_level(TSLexer *lexer) {
 /// grammar reads it (`////` lines around the body) and stop at the end of its
 /// closing line. False if the line opens no block comment or nothing closes it.
 static inline bool skip_block_comment(TSLexer *lexer) {
-    if(!parse_sequence(lexer, "//") || !is_newline(lexer->lookahead)) {
+    if(!parse_sequence(lexer, "//") || !delimiter_line_ends(lexer, false)) {
         return false;
     }
     while(skip_line_ending(lexer) && !lexer->eof(lexer)) {
-        if(parse_sequence(lexer, "////") && is_newline(lexer->lookahead)) {
+        if(parse_sequence(lexer, "////") && delimiter_line_ends(lexer, false)) {
             return true;
         }
         skip_rest_of_line(lexer);
@@ -1109,6 +1126,15 @@ static inline bool skip_white_space(TSLexer *lexer) {
     }
 
     return has_skiped;
+}
+
+/// With the lexer behind a delimiter run, whether only blanks remain on the line, as
+/// Asciidoctor allows after a block delimiter. The blanks are consumed, so the caller marks
+/// the token end afterwards to keep them in the delimiter, and reads what it needs of the
+/// character after the run beforehand.
+static inline bool delimiter_line_ends(TSLexer *lexer, bool allow_eof) {
+    skip_white_space(lexer);
+    return is_newline(lexer->lookahead) || (allow_eof && is_eof(lexer));
 }
 
 static inline bool is_newline(i32 ch) {
@@ -1593,7 +1619,16 @@ static inline bool is_list_line(i32 const *line, usize len) {
             return false;
         }
     }
-    return i < len && is_white_space(line[i]);
+    if(i >= len || !is_white_space(line[i])) {
+        return false;
+    }
+    // A run of four or more with nothing but blanks behind it is a delimiter line with
+    // trailing blanks, as `****  ` closing a sidebar, not a list item.
+    usize run = i;
+    while(i < len && is_white_space(line[i])) {
+        i++;
+    }
+    return i < len || run < 4 || (line[0] != '*' && line[0] != '.');
 }
 
 /// Whether an unindented `line` is a description list term: the description

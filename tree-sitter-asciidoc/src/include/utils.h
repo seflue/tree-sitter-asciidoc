@@ -103,6 +103,7 @@ static inline bool parse_ordered_marker(TSLexer *lexer, bool *dot_read);
 static inline bool parse_breaks(char start, TSLexer *lexer);
 static inline bool consume(i32 ch, TSLexer *lexer, bool skip_space, usize *counter, usize max);
 static inline bool skip_white_space(TSLexer *lexer);
+static inline bool delimiter_line_ends(TSLexer *lexer, bool allow_eof);
 static inline bool is_white_space(i32 ch);
 static inline bool continues_paragraph(TSLexer *lexer, bool in_list, bool in_table);
 static inline bool is_prose_line(i32 const *line, usize len, bool in_list, bool in_table);
