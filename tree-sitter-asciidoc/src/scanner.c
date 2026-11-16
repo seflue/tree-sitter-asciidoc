@@ -689,14 +689,10 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                         if(parse_sequence(lexer, "//")) {
                             lexer->mark_end(lexer);
                             if(valid_symbols[TOKEN_BLOCK_COMMENT_START_MARKER]) {
-                                // `////` and any longer run of slashes alone on its line.
-                                // Counted by hand: consume() would move the token end, which
-                                // has to stay after the `//` for the line comment fallback.
-                                usize run = 2;
-                                while(lexer->lookahead == '/') {
-                                    lexer->advance(lexer, false);
-                                    ++run;
-                                }
+                                // `////` and any longer run of slashes alone on its line. The
+                                // token end has to stay after the `//` for the line comment
+                                // fallback.
+                                usize run = 2 + skip_run(lexer, '/');
                                 if(run >= 4 && delimiter_line_ends(lexer)) {
                                     lexer->mark_end(lexer);
                                     scanner_push(s, BLOCK_KIND_COMMENT, run);
@@ -1080,21 +1076,12 @@ static inline int peek_heading_level(TSLexer *lexer) {
 /// repeating the opener's slashes) and stop at the end of its closing line. False
 /// if the line opens no block comment or nothing closes it.
 static inline bool skip_block_comment(TSLexer *lexer) {
-    // Counted by hand: consume() would mark the token end, which the callers set.
-    usize open = 2;
-    while(lexer->lookahead == '/') {
-        lexer->advance(lexer, false);
-        ++open;
-    }
+    usize open = 2 + skip_run(lexer, '/');
     if(open < 4 || !delimiter_line_ends(lexer)) {
         return false;
     }
     while(skip_line_ending(lexer) && !lexer->eof(lexer)) {
-        usize run = 0;
-        while(lexer->lookahead == '/') {
-            lexer->advance(lexer, false);
-            ++run;
-        }
+        usize run = skip_run(lexer, '/');
         if(run == open && delimiter_line_ends(lexer)) {
             return true;
         }
@@ -1204,6 +1191,17 @@ static inline bool skip_white_space(TSLexer *lexer) {
 static inline bool delimiter_line_ends(TSLexer *lexer) {
     skip_white_space(lexer);
     return is_newline(lexer->lookahead) || is_eof(lexer);
+}
+
+/// Advance over a run of `ch` and return its length. Unlike consume() it never moves the
+/// token end, which the callers set themselves.
+static inline usize skip_run(TSLexer *lexer, i32 ch) {
+    usize run = 0;
+    while(lexer->lookahead == ch) {
+        lexer->advance(lexer, false);
+        ++run;
+    }
+    return run;
 }
 
 /// With the lexer behind a heading marker run, whether title text follows on the line. A

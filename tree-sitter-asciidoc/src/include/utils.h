@@ -107,6 +107,7 @@ static inline bool parse_breaks(char start, TSLexer *lexer);
 static inline bool consume(i32 ch, TSLexer *lexer, bool skip_space, usize *counter, usize max);
 static inline bool skip_white_space(TSLexer *lexer);
 static inline bool delimiter_line_ends(TSLexer *lexer);
+static inline usize skip_run(TSLexer *lexer, i32 ch);
 static inline bool heading_text_follows(TSLexer *lexer);
 static inline bool is_white_space(i32 ch);
 // The longest line the scanner reads to judge a paragraph line. A longer line is
