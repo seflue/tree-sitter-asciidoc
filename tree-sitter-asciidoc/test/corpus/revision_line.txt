@@ -103,3 +103,322 @@ Body.
     (section_block
       (paragraph
         (line)))))
+
+===========
+revision line with only a version
+===========
+
+= Title
+Jane Doe
+v1.0
+:toc: left
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber))))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+revision line with a version and a trailing comma
+===========
+
+= Title
+Jane Doe
+v1.0,
+:toc: left
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber))))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+revision line with a version and a remark
+===========
+
+= Title
+Jane Doe
+v1.0: remark
+:toc: left
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber)
+        (revremark))))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+revision line with only a date
+===========
+
+= Title
+Jane Doe
+1.0
+:toc: left
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revdate))))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+revision line with a version, a date and no space after the comma
+===========
+
+= Title
+Jane Doe
+v1.0,2026-01-01
+:toc: left
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber)
+        (revdate))))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+revision line with a date and a remark but no version
+===========
+
+= Title
+Jane Doe
+1.0: remark
+:toc: left
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revdate)
+        (revremark))))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+revision line of plain text is the date
+===========
+
+= Title
+Jane Doe
+Some text
+:toc: left
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revdate))))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+revision line starting with v and no comma is the version
+===========
+
+= Title
+Jane Doe
+very soon
+:toc: left
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber))))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+revision line with a plain version before the comma
+===========
+
+= Title
+Jane Doe
+1.0, 2026-01-01
+:toc: left
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber)
+        (revdate))))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))

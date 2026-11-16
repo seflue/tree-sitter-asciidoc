@@ -75,7 +75,9 @@ typedef enum TokenType {
     TOKEN_SECTION_ANCHOR_MARKER_4,
     TOKEN_SECTION_ANCHOR_MARKER_5,
     TOKEN_DOC_TITLE_ATTR_MARKER,
-    TOKEN_DOC_TITLE_ANCHOR_MARKER
+    TOKEN_DOC_TITLE_ANCHOR_MARKER,
+    TOKEN_HEADER_END,
+    TOKEN_HEADER_ENTRY
 } TokenType;
 
 /// What `peek_heading_level` returns for a level-0 heading (`= Title`), after

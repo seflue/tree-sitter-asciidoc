@@ -528,6 +528,10 @@
           "named": true
         },
         {
+          "type": "block_comment",
+          "named": true
+        },
+        {
           "type": "block_macro",
           "named": true
         },
@@ -537,6 +541,10 @@
         },
         {
           "type": "line",
+          "named": true
+        },
+        {
+          "type": "line_comment",
           "named": true
         },
         {
@@ -1070,17 +1078,12 @@
     }
   },
   {
-    "type": "revdate",
-    "named": true,
-    "fields": {}
-  },
-  {
     "type": "revision_line",
     "named": true,
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "revdate",
@@ -1096,16 +1099,6 @@
         }
       ]
     }
-  },
-  {
-    "type": "revnumber",
-    "named": true,
-    "fields": {}
-  },
-  {
-    "type": "revremark",
-    "named": true,
-    "fields": {}
   },
   {
     "type": "section",
@@ -1629,14 +1622,6 @@
     "named": false
   },
   {
-    "type": "\\,",
-    "named": false
-  },
-  {
-    "type": "\\:",
-    "named": false
-  },
-  {
     "type": "\\=",
     "named": false
   },
@@ -1858,6 +1843,18 @@
   },
   {
     "type": "reftext",
+    "named": true
+  },
+  {
+    "type": "revdate",
+    "named": true
+  },
+  {
+    "type": "revnumber",
+    "named": true
+  },
+  {
+    "type": "revremark",
     "named": true
   },
   {

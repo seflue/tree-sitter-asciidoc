@@ -525,6 +525,14 @@ module.exports = grammar({
     // The same for a level-0 heading, the document title or a book part.
     $._doc_title_attr_marker,
     $._doc_title_anchor_marker,
+    // The newline that ends a document header under the author line, when
+    // the next line starts with `:` without being an attribute entry.
+    $._header_end,
+    // The same position, when the `:` line is an attribute entry: the entry
+    // stays in the header. The token has no width and only tells the parser
+    // that the scanner has looked at the line, so the next scan reads the
+    // entry's marker as usual.
+    $._header_entry,
     // A token the scanner never produces. It is valid only inside a section,
     // so a parse state inside a section never shares its lexer mode with one
     // at the document level, where a section of any level may open too.

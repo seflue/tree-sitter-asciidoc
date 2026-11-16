@@ -16,8 +16,10 @@
   ";" @punctuation.delimiter)
 
 (revision_line
-  "," @punctuation.delimiter
-  ":" @punctuation.delimiter)
+  [
+    ","
+    ":"
+  ] @punctuation.delimiter)
 
 (list_continuation) @constant
 

@@ -1,0 +1,461 @@
+===========
+comment line before the revision line
+===========
+
+= Title
+Jane Doe
+// c
+v1.0
+:toc: left
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (line_comment
+        (line_comment_marker)
+        (body))
+      (revision_line
+        (revnumber))))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comment block before the revision line
+===========
+
+= Title
+Jane Doe
+////
+x
+////
+v1.0, 2026-01-01
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))
+      (revision_line
+        (revnumber)
+        (revdate))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comment line before an attribute entry keeps the entry in the header
+===========
+
+= Title
+Jane Doe
+// c
+:toc: left
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (line_comment
+        (line_comment_marker)
+        (body))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+attribute entry directly under the author is no revision line
+===========
+
+= Title
+Jane Doe
+:toc: left
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+unfinished attribute entry under the author is a paragraph
+===========
+
+= Title
+Jane Doe
+:to
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))))
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+lone comma is a revision line with an empty version
+===========
+
+= Title
+Jane Doe
+,
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comma and date without a version
+===========
+
+= Title
+Jane Doe
+, 2026
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revdate))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+remark directly after the colon
+===========
+
+= Title
+Jane Doe
+v1.0:remark
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber)
+        (revremark))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+colon without a remark
+===========
+
+= Title
+Jane Doe
+v1.0:
+:toc: left
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber))))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comma, colon and remark without a date
+===========
+
+= Title
+Jane Doe
+v1.0,: remark
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber)
+        (revremark))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+date with a time splits at the colon
+===========
+
+= Title
+Jane Doe
+v1.0, 2026-01-01T10:00
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber)
+        (revdate)
+        (revremark))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+date and colon without a remark
+===========
+
+= Title
+Jane Doe
+v1.0, 2026:
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber)
+        (revdate))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+backslash is no escape in the revision line
+===========
+
+= Title
+Jane Doe
+v1.0\, x
+
+Body.
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber)
+        (revdate))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+unfinished attribute entry under the author at the end of the input
+===========
+
+= Title
+Jane Doe
+:toc
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+lone colon under the author is a paragraph
+===========
+
+= Title
+Jane Doe
+:
+
+== Section
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))))
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))

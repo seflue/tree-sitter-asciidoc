@@ -56,6 +56,15 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
             lexer->result_symbol = TOKEN_TYPE_EOF;
             return true;
         }
+        // A comment block nothing closes runs to the end of the input, as in
+        // Asciidoctor. The marker has no width then. Left to error recovery
+        // (a MISSING marker), the whole document turned into an ERROR where
+        // the comment is followed by a token the grammar needs, such as the
+        // end of a header.
+        if(valid_symbols[TOKEN_BLOCK_COMMENT_END_MARKER]) {
+            lexer->result_symbol = TOKEN_BLOCK_COMMENT_END_MARKER;
+            return true;
+        }
     }
 
     // Whether the table opened with a header row was settled while its `|===` was scanned,
@@ -75,7 +84,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
             return false;
         }
         if(parse_sequence(lexer, "////")) {
-            if(delimiter_line_ends(lexer, false)) {
+            if(delimiter_line_ends(lexer, true)) {
                 lexer->result_symbol = TOKEN_BLOCK_COMMENT_END_MARKER;
                 return true;
             }
@@ -102,6 +111,22 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
             return true;
         }
         return false;
+    }
+
+    // A `:` line in the header slot that is no attribute entry ends the
+    // header, and the line goes back to the body. Asciidoctor reads such a
+    // line as a revision line only when it has a comma; the grammar leaves
+    // that case (`:a, b`) to the body. The token has no width and sits at
+    // the start of that line, so it follows the author line and any comment
+    // under it alike.
+    if(valid_symbols[TOKEN_HEADER_END] && start_pos == 0 && lexer->lookahead == ':') {
+        lexer->mark_end(lexer);
+        lexer->advance(lexer, false);
+        // An attribute entry is no end, but the lexer is past its marker now.
+        // The zero-width entry token lets the next scan start over at the
+        // line.
+        lexer->result_symbol = rest_of_line_is_attr_entry(lexer) ? TOKEN_HEADER_ENTRY : TOKEN_HEADER_END;
+        return true;
     }
 
     if(start_pos == 0) {
