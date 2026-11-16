@@ -904,6 +904,9 @@ static inline bool rest_of_line_is_block_anchor(TSLexer *lexer) {
         return false;
     }
     lexer->advance(lexer, false);
+    while(is_white_space(lexer->lookahead)) {  // Asciidoctor strips trailing whitespace
+        lexer->advance(lexer, false);
+    }
     return lexer->eof(lexer) || is_newline(lexer->lookahead);
 }
 
@@ -939,7 +942,9 @@ static inline int peek_heading_level(TSLexer *lexer) {
             }
             i32 last = c;
             while(!lexer->eof(lexer) && !is_newline(lexer->lookahead)) {
-                last = lexer->lookahead;
+                if(!is_white_space(lexer->lookahead)) {
+                    last = lexer->lookahead;
+                }
                 lexer->advance(lexer, false);
             }
             if(last != ']') {

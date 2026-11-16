@@ -251,3 +251,42 @@ Text
           (paragraph
             (line)))
         (sidebar_block_end_marker)))))
+
+==================
+block anchor with trailing spaces
+==================
+
+[[a]]  
+x
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (paragraph
+        (line)))))
+
+==================
+attribute list with trailing spaces
+==================
+
+[#myid]	 
+x
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (element_attr
+        (element_attr_marker)
+        (positional_attr
+          (id))
+        (element_attr_marker))
+      (paragraph
+        (line)))))

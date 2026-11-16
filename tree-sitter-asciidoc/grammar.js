@@ -258,6 +258,7 @@ module.exports = grammar({
           seq(',', optional($._WHITE_SPACE), optional(seq($._attr, optional($._WHITE_SPACE)))),
         ),
         alias(']', $.element_attr_marker),
+        optional($._WHITE_SPACE),
         $._NEWLINE,
       ),
     _lead_attr: $ =>
@@ -313,6 +314,7 @@ module.exports = grammar({
           ),
         ),
         alias(']]', $.block_anchor_marker),
+        optional($._WHITE_SPACE),
         $._NEWLINE,
       ),
 

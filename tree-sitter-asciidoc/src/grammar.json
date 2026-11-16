@@ -3611,6 +3611,18 @@
           "value": "element_attr_marker"
         },
         {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_WHITE_SPACE"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
           "type": "SYMBOL",
           "name": "_NEWLINE"
         }
@@ -4092,6 +4104,18 @@
           },
           "named": true,
           "value": "block_anchor_marker"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_WHITE_SPACE"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         },
         {
           "type": "SYMBOL",

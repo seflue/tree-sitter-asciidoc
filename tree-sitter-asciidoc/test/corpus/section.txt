@@ -584,3 +584,29 @@ Probe {zz} here.
             (document_attr_marker)
             (attr_name)
             (document_attr_marker)))))))
+
+==================
+id shorthand with trailing spaces above a heading
+==================
+
+[#sid] 
+== T
+
+Body.
+
+--------
+
+(document
+  (block_element
+    (section
+      (element_attr
+        (element_attr_marker)
+        (positional_attr
+          (id))
+        (element_attr_marker))
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
