@@ -298,18 +298,14 @@ para
   (block_element (section_block (paragraph (line)))))
 
 =================|||
-heading marker with a blank and CRLF line end is a paragraph
+heading marker with a blank on the last line is a paragraph
 =================|||
 
 intro
 
 == 
-
-para
-
 -------------------|||
 
 (document
-  (block_element (section_block (paragraph (line))))
   (block_element (section_block (paragraph (line))))
   (block_element (section_block (paragraph (line)))))
