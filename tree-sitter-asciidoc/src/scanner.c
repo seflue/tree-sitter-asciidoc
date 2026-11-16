@@ -256,7 +256,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
 
                     if(!scanner_is_matching_raw_block(s)) {
                         usize level = TOKEN_TITLE_H0_MARKER - 1 + run;
-                        if(level <= TOKEN_TITLE_H5_MARKER && blank_follows) {
+                        if(level <= TOKEN_TITLE_H5_MARKER && blank_follows && heading_text_follows(lexer)) {
                             lexer->result_symbol = level;
                             return true;
                         }
@@ -271,7 +271,8 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                     lexer->mark_end(lexer);
                     if(!scanner_is_matching_raw_block(s)) {
                         usize level = TOKEN_TITLE_H0_MARKER - 1 + lexer->get_column(lexer);
-                        if(level <= TOKEN_TITLE_H5_MARKER && is_white_space(lexer->lookahead)) {
+                        if(level <= TOKEN_TITLE_H5_MARKER && is_white_space(lexer->lookahead) &&
+                           heading_text_follows(lexer)) {
                             lexer->result_symbol = level;
                             return true;
                         }
@@ -990,14 +991,14 @@ static inline int peek_heading_level(TSLexer *lexer) {
                 run++;
             }
             if(run == 1 && is_white_space(lexer->lookahead)) {
-                return HEADING_LEVEL_DOC_TITLE;
+                return heading_text_follows(lexer) ? HEADING_LEVEL_DOC_TITLE : 0;
             }
             // `====` and longer with only blanks behind it is a delimiter line, not a heading.
             bool blank_follows = is_white_space(lexer->lookahead);
             if(c == '=' && run >= 4 && delimiter_line_ends(lexer, false)) {
                 return 0;
             }
-            return run >= 2 && run <= 6 && blank_follows ? run - 1 : 0;
+            return run >= 2 && run <= 6 && blank_follows && heading_text_follows(lexer) ? run - 1 : 0;
         }
         if(c == '[') {
             lexer->advance(lexer, false);
@@ -1160,6 +1161,13 @@ static inline bool skip_white_space(TSLexer *lexer) {
 static inline bool delimiter_line_ends(TSLexer *lexer, bool allow_eof) {
     skip_white_space(lexer);
     return is_newline(lexer->lookahead) || (allow_eof && is_eof(lexer));
+}
+
+/// With the lexer behind a heading marker run, whether title text follows on the line. A
+/// marker with only blanks behind it is a paragraph for Asciidoctor, not a heading.
+static inline bool heading_text_follows(TSLexer *lexer) {
+    skip_white_space(lexer);
+    return !is_newline(lexer->lookahead) && !is_eof(lexer);
 }
 
 static inline bool is_newline(i32 ch) {

@@ -1,0 +1,315 @@
+=================|||
+heading marker with one blank and no title text is a paragraph
+=================|||
+
+intro
+
+== 
+
+para
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line)))))
+
+=================|||
+heading marker with two blanks and no title text is a paragraph
+=================|||
+
+intro
+
+==  
+
+para
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line)))))
+
+=================|||
+heading marker with a tab and no title text is a paragraph
+=================|||
+
+intro
+
+==	
+
+para
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line)))))
+
+=================|||
+level 2 heading marker with a blank and no title text is a paragraph
+=================|||
+
+intro
+
+=== 
+
+para
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line)))))
+
+=================|||
+heading marker without title text does not take the next line
+=================|||
+
+intro
+
+== 
+para
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line) (line)))))
+
+=================|||
+document title marker without title text is a paragraph
+=================|||
+
+= 
+
+para
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line)))))
+
+=================|||
+atx heading marker without title text is a paragraph
+=================|||
+
+intro
+
+# 
+
+para
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line)))))
+
+=================|||
+atx level 2 heading marker without title text is a paragraph
+=================|||
+
+intro
+
+## 
+
+para
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line)))))
+
+=================|||
+heading marker without title text after an attribute line stays a paragraph
+=================|||
+
+intro
+
+[discrete]
+== 
+
+para
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (element_attr (element_attr_marker) (positional_attr (block_style)) (element_attr_marker)) (paragraph (line))))
+  (block_element (section_block (paragraph (line)))))
+
+=================|||
+heading marker without title text after a block title stays a paragraph
+=================|||
+
+intro
+
+.Block title
+== 
+
+para
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (block_title (block_title_marker) (line)) (paragraph (line))))
+  (block_element (section_block (paragraph (line)))))
+
+=================|||
+level 2 heading marker without title text inside a section is a paragraph
+=================|||
+
+intro
+
+== Title
+
+=== 
+
+para
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section (title1 (title_h1_marker) (line)) (section_block (paragraph (line))) (section_block (paragraph (line))))))
+
+=================|||
+heading with two blanks before the title is still a heading
+=================|||
+
+intro
+
+==  Title
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section (title1 (title_h1_marker) (line)))))
+
+=================|||
+heading with a one character title is still a heading
+=================|||
+
+intro
+
+== x
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section (title1 (title_h1_marker) (line)))))
+
+=================|||
+heading after an attribute line keeps its title
+=================|||
+
+intro
+
+[discrete]
+== Title
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section (element_attr (element_attr_marker) (positional_attr (block_style)) (element_attr_marker)) (title1 (title_h1_marker) (line)))))
+
+=================|||
+example delimiter with trailing blanks is still a delimited block
+=================|||
+
+intro
+
+==== 
+x
+==== 
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (delimited_block (delimited_block_start_marker) (section_block (paragraph (line))) (delimited_block_end_marker)))))
+
+
+=================|||
+anchor above a lone level 0 marker with a blank is a paragraph
+=================|||
+
+[[top]]
+= 
+
+para
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (block_anchor (block_anchor_marker) (id) (block_anchor_marker))
+      (paragraph (line))))
+  (block_element (section_block (paragraph (line)))))
+
+=================|||
+anchor above a lone ATX level 0 marker with a blank is a paragraph
+=================|||
+
+[[top]]
+# 
+
+para
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (block_anchor (block_anchor_marker) (id) (block_anchor_marker))
+      (paragraph (line))))
+  (block_element (section_block (paragraph (line)))))
+
+=================|||
+discrete style above a lone level 0 marker with a blank is a paragraph
+=================|||
+
+[discrete]
+= 
+
+para
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (element_attr (element_attr_marker) (positional_attr (block_style)) (element_attr_marker))
+      (paragraph (line))))
+  (block_element (section_block (paragraph (line)))))
+
+=================|||
+heading marker with a blank and CRLF line end is a paragraph
+=================|||
+
+intro
+
+== 
+
+para
+
+-------------------|||
+
+(document
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line))))
+  (block_element (section_block (paragraph (line)))))
