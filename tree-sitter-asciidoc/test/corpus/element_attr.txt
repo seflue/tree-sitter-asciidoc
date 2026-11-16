@@ -290,3 +290,75 @@ x
         (element_attr_marker))
       (paragraph
         (line)))))
+
+==================
+bracket line with a leading space is a paragraph
+==================
+
+[ #sid]
+x
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line)))))
+
+==================
+bracket line starting with a dash is a paragraph
+==================
+
+[-x]
+y
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line)))))
+
+==================
+bracket line with a trailing text is a paragraph
+==================
+
+[x] y
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+==================
+unclosed bracket line is a paragraph
+==================
+
+[x
+
+== T
+
+Body.
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))

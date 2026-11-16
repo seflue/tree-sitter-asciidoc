@@ -505,7 +505,10 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                             return false;
                         }
                         lexer->mark_end(lexer);
-                        skip_rest_of_line(lexer);
+                        // A line that is no attribute list stays paragraph text.
+                        if(!rest_of_line_is_attr_list(lexer)) {
+                            return false;
+                        }
                         lexer->result_symbol = section_marker(valid_symbols, TOKEN_SECTION_ATTR_MARKER_1,
                                                               peek_heading_level(lexer), TOKEN_ELEMENT_ATTR_MARKER);
                         return true;
@@ -910,6 +913,26 @@ static inline bool rest_of_line_is_block_anchor(TSLexer *lexer) {
     return lexer->eof(lexer) || is_newline(lexer->lookahead);
 }
 
+/// With the lexer just past `[`, read the rest of the line and say whether it
+/// is a block attribute list: Asciidoctor's BlockAttributeListRx,
+/// `[` + (nothing | a word character or one of `.#%{,"'`, then anything) + `]`
+/// at the end of the line. Trailing whitespace is stripped first.
+static inline bool rest_of_line_is_attr_list(TSLexer *lexer) {
+    i32 first = lexer->lookahead;
+    if(!(first == ']' || is_word_start(first) || first == '_' || first == '.' || first == '#' || first == '%' ||
+         first == '{' || first == ',' || first == '"' || first == '\'')) {
+        return false;
+    }
+    i32 last = '[';
+    while(!lexer->eof(lexer) && !is_newline(lexer->lookahead)) {
+        if(!is_white_space(lexer->lookahead)) {
+            last = lexer->lookahead;
+        }
+        lexer->advance(lexer, false);
+    }
+    return last == ']';
+}
+
 /// With the lexer at the end of a block attribute, anchor or title line, skip
 /// the rest of the run (more such lines, line comments and blank lines) and
 /// return the level (1-5) of the section heading below it, 0 if something
@@ -940,14 +963,7 @@ static inline int peek_heading_level(TSLexer *lexer) {
                 }
                 continue;
             }
-            i32 last = c;
-            while(!lexer->eof(lexer) && !is_newline(lexer->lookahead)) {
-                if(!is_white_space(lexer->lookahead)) {
-                    last = lexer->lookahead;
-                }
-                lexer->advance(lexer, false);
-            }
-            if(last != ']') {
+            if(!rest_of_line_is_attr_list(lexer)) {
                 return 0;
             }
             continue;
