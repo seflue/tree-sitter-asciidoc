@@ -1,0 +1,82 @@
+================|||
+unordered item, continuation with trailing blanks, listing
+================|||
+
+* a
++  
+----
+code
+----
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_star))
+            (line)
+            (list_continuation)
+            (block_element
+              (section_block
+                (listing_block
+                  (listing_block_start_marker)
+                  (listing_block_body)
+                  (listing_block_end_marker))))))))))
+
+================|||
+unordered item, continuation with trailing tab, paragraph
+================|||
+
+* a
++	
+b
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_star))
+            (line)
+            (list_continuation)
+            (block_element
+              (section_block
+                (paragraph
+                  (line))))))))))
+
+================|||
+description list item, continuation with trailing blanks
+================|||
+
+term:: def
++  
+----
+code
+----
+
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (description_list
+        (description_list_item
+          (term)
+          (description_marker)
+          (line)
+          (list_continuation)
+          (block_element
+            (section_block
+              (listing_block
+                (listing_block_start_marker)
+                (listing_block_body)
+                (listing_block_end_marker)))))))))
+

@@ -722,9 +722,9 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                 case '+': {
                     lexer->advance(lexer, false);
                     if(valid_symbols[TOKEN_LIST_CONTINUATION]) {
-                        if(is_newline(lexer->lookahead)) {
-                            lexer->result_symbol = TOKEN_LIST_CONTINUATION;
+                        if(delimiter_line_ends(lexer, false)) {
                             lexer->mark_end(lexer);
+                            lexer->result_symbol = TOKEN_LIST_CONTINUATION;
                             return true;
                         }
                     }
