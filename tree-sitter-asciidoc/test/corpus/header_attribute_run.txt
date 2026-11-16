@@ -1,0 +1,421 @@
+==================
+anchor, attribute entry and document title
+==================
+
+[[x]]
+:a: b
+= T
+
+--------
+
+(document
+  (block_element
+    (block_anchor
+      (block_anchor_marker)
+      (id)
+      (block_anchor_marker))
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line))
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+role, attribute entry and document title
+==================
+
+[.role]
+:a: b
+= T
+
+--------
+
+(document
+  (block_element
+    (element_attr
+      (element_attr_marker)
+      (positional_attr
+        (role))
+      (element_attr_marker))
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line))
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+anchor, entry, second anchor and document title
+==================
+
+[[x]]
+:a: b
+[[y]]
+= T
+
+--------
+
+(document
+  (block_element
+    (block_anchor
+      (block_anchor_marker)
+      (id)
+      (block_anchor_marker))
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line))
+    (block_anchor
+      (block_anchor_marker)
+      (id)
+      (block_anchor_marker))
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+several attribute entries above the document title
+==================
+
+[[x]]
+:a: b
+:c: d
+= T
+
+--------
+
+(document
+  (block_element
+    (block_anchor
+      (block_anchor_marker)
+      (id)
+      (block_anchor_marker))
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line))
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line))
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+comments between the run and the document title
+==================
+
+[[x]]
+// one
+:a: b
+// two
+= T
+
+--------
+
+(document
+  (block_element
+    (block_anchor
+      (block_anchor_marker)
+      (id)
+      (block_anchor_marker))
+    (line_comment
+      (line_comment_marker)
+      (body))
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line))
+    (line_comment
+      (line_comment_marker)
+      (body))
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+blank line inside the run above the document title
+==================
+
+[[x]]
+:a: b
+
+= T
+
+--------
+
+(document
+  (block_element
+    (block_anchor
+      (block_anchor_marker)
+      (id)
+      (block_anchor_marker))
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line))
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+continued entry value above the document title
+==================
+
+[[x]]
+:a: b \
+c
+= T
+
+--------
+
+(document
+  (block_element
+    (block_anchor
+      (block_anchor_marker)
+      (id)
+      (block_anchor_marker))
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line))
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+unset entry above the document title
+==================
+
+[[x]]
+:!a:
+= T
+
+--------
+
+(document
+  (block_element
+    (block_anchor
+      (block_anchor_marker)
+      (id)
+      (block_anchor_marker))
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker))
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+paragraph between the run and the title keeps everything a paragraph
+==================
+
+[[x]]
+:a: b
+text
+
+= T
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (paragraph
+        (line)
+        (line))))
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+entry followed by a paragraph
+==================
+
+[[x]]
+:a: b
+
+text
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+==================
+anchor and entry at end of input
+==================
+
+[[x]]
+:a: b
+--------
+
+(document
+  (block_element
+    (section_block
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (paragraph
+        (line)))))
+
+==================
+entry above a level-1 heading (known divergence from Asciidoctor)
+==================
+
+[[x]]
+:a: b
+== S
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (paragraph
+        (line))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+block title behind an entry above the document title
+==================
+
+[[x]]
+:a: b
+.Title
+= T
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (paragraph
+        (line))))
+  (ERROR
+    (block_title
+      (block_title_marker)
+      (line)))
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+book part with anchor and entry
+==================
+
+= Book
+:doctype: book
+
+[[p1]]
+:a: b
+= Part One
+
+== Chapter
+
+--------
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))))
+  (block_element
+    (block_anchor
+      (block_anchor_marker)
+      (id)
+      (block_anchor_marker))
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line))
+    (document_title
+      (title_h0_marker)
+      (line)))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+book part without a run
+==================
+
+= Book
+:doctype: book
+
+= Part A
+
+== Chapter
+
+--------
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))))
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))

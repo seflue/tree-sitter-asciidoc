@@ -125,6 +125,7 @@ static inline bool rest_of_line_is_block_anchor(TSLexer *lexer);
 static inline bool rest_of_line_is_attr_entry(TSLexer *lexer);
 static inline bool rest_of_line_is_attr_list(TSLexer *lexer);
 static inline int peek_heading_level(TSLexer *lexer);
+static inline int peek_heading_level_in_run(TSLexer *lexer, bool *entry_skipped);
 static inline bool skip_block_comment(TSLexer *lexer);
 static inline TokenType section_marker(const bool *valid_symbols, TokenType first, int level, TokenType fallback);
 static inline bool is_dlist_line(i32 const *line, usize len);

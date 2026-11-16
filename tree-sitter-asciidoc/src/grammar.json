@@ -3099,6 +3099,10 @@
               },
               {
                 "type": "SYMBOL",
+                "name": "document_attr"
+              },
+              {
+                "type": "SYMBOL",
                 "name": "_section_comment"
               }
             ]

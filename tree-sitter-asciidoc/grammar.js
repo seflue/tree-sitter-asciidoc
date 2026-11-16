@@ -155,7 +155,7 @@ module.exports = grammar({
           alias($._doc_title_element_attr, $.element_attr),
           alias($._doc_title_block_anchor, $.block_anchor),
         ),
-        repeat(choice($.element_attr, $.block_anchor, $._section_comment)),
+        repeat(choice($.element_attr, $.block_anchor, $.document_attr, $._section_comment)),
       ),
     _doc_title_element_attr: $ =>
       seq(alias($._doc_title_attr_marker, $.element_attr_marker), $._element_attr_body),

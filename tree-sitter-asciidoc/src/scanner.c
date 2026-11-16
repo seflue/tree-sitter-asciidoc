@@ -1002,7 +1002,23 @@ static inline bool rest_of_line_is_attr_list(TSLexer *lexer) {
 /// the rest of the run (more such lines, line comments and blank lines) and
 /// return the level (1-5) of the section heading below it, 0 if something
 /// else follows, or -1 if nothing does.
+///
+/// Attribute entries (`:name: value`, with `\` continuation lines) are skipped
+/// too, but only a level-0 heading below them counts. Asciidoctor carries the
+/// run across entries for every heading level; the grammar does so only for
+/// level 0, because the section runs (section_attrs_rules) take no
+/// document_attr yet. For any other result behind an entry (a level 1-5
+/// heading, other text, the end of input or a block title line) the result is 0.
 static inline int peek_heading_level(TSLexer *lexer) {
+    bool entry_skipped = false;
+    int level = peek_heading_level_in_run(lexer, &entry_skipped);
+    if(entry_skipped && level != HEADING_LEVEL_DOC_TITLE) {
+        return 0;
+    }
+    return level;
+}
+
+static inline int peek_heading_level_in_run(TSLexer *lexer, bool *entry_skipped) {
     for(;;) {
         if(!skip_line_ending(lexer) || lexer->eof(lexer)) {
             return -1;
@@ -1041,8 +1057,30 @@ static inline int peek_heading_level(TSLexer *lexer) {
             }
             continue;
         }
+        if(c == ':') {
+            lexer->advance(lexer, false);
+            if(!rest_of_line_is_attr_entry(lexer)) {
+                return 0;
+            }
+            // A value line ending in a backslash goes on in the next line.
+            for(;;) {
+                i32 last = 0;
+                while(!lexer->eof(lexer) && !is_newline(lexer->lookahead)) {
+                    last = lexer->lookahead;
+                    lexer->advance(lexer, false);
+                }
+                if(last != '\\' || !skip_line_ending(lexer)) {
+                    break;
+                }
+            }
+            *entry_skipped = true;
+            continue;
+        }
         if(c == '.') {
             // A block title, not a list item, literal block or a lone dot.
+            if(*entry_skipped) {
+                return 0;
+            }
             lexer->advance(lexer, false);
             if(lexer->eof(lexer) || lexer->lookahead == '.' || is_white_space(lexer->lookahead) ||
                is_newline(lexer->lookahead)) {
