@@ -633,16 +633,32 @@
           "name": "revdate"
         },
         {
-          "type": "STRING",
-          "value": ":"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "_WHITE_SPACE"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "revremark"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "IMMEDIATE_TOKEN",
+                  "content": {
+                    "type": "STRING",
+                    "value": ":"
+                  }
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_WHITE_SPACE"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "revremark"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         }
       ]
     },

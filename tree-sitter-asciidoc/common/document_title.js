@@ -44,9 +44,10 @@ exports.rules = {
       ',',
       $._WHITE_SPACE,
       $.revdate,
-      ':',
-      $._WHITE_SPACE,
-      $.revremark,
+      // The remark is optional. Its `:` must follow the date directly: the
+      // newline is an extra, so a plain `:` would take the `:` that opens the
+      // attribute entry on the next line.
+      optional(seq(token.immediate(':'), $._WHITE_SPACE, $.revremark)),
     ),
   revnumber: $ => repeat1(escaped_ch(',', true)),
   revdate: $ => repeat1(escaped_ch(':', true)),
