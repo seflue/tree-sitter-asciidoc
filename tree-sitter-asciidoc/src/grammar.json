@@ -428,24 +428,8 @@
                           ]
                         },
                         {
-                          "type": "REPEAT",
-                          "content": {
-                            "type": "CHOICE",
-                            "members": [
-                              {
-                                "type": "SYMBOL",
-                                "name": "document_attr"
-                              },
-                              {
-                                "type": "SYMBOL",
-                                "name": "block_macro"
-                              }
-                            ]
-                          }
-                        },
-                        {
                           "type": "SYMBOL",
-                          "name": "_block_end"
+                          "name": "_header_attrs"
                         }
                       ]
                     }
@@ -454,31 +438,35 @@
               ]
             },
             {
-              "type": "SEQ",
-              "members": [
-                {
-                  "type": "REPEAT",
-                  "content": {
-                    "type": "CHOICE",
-                    "members": [
-                      {
-                        "type": "SYMBOL",
-                        "name": "document_attr"
-                      },
-                      {
-                        "type": "SYMBOL",
-                        "name": "block_macro"
-                      }
-                    ]
-                  }
-                },
-                {
-                  "type": "SYMBOL",
-                  "name": "_block_end"
-                }
-              ]
+              "type": "SYMBOL",
+              "name": "_header_attrs"
             }
           ]
+        }
+      ]
+    },
+    "_header_attrs": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "document_attr"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "block_macro"
+              }
+            ]
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_block_end"
         }
       ]
     },

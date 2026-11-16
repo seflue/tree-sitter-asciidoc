@@ -22,14 +22,14 @@ exports.rules = {
             $._header_end,
             seq(
               optional(choice($.revision_line, $._header_entry)),
-              repeat(choice($.document_attr, $.block_macro)),
-              $._block_end,
+              $._header_attrs,
             ),
           ),
         ),
-        seq(repeat(choice($.document_attr, $.block_macro)), $._block_end),
+        $._header_attrs,
       ),
     ),
+  _header_attrs: $ => seq(repeat(choice($.document_attr, $.block_macro)), $._block_end),
   // A comment line ends with its newline; a comment block does not, and
   // without the explicit newline the title would end there.
   _header_comment: $ => choice($.line_comment, seq($.block_comment, $._block_end)),

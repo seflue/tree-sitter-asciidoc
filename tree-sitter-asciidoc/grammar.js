@@ -525,8 +525,9 @@ module.exports = grammar({
     // The same for a level-0 heading, the document title or a book part.
     $._doc_title_attr_marker,
     $._doc_title_anchor_marker,
-    // The newline that ends a document header under the author line, when
-    // the next line starts with `:` without being an attribute entry.
+    // A zero-width token at the start of a `:` line in the header slot
+    // (after the author line or any header comment) that is no attribute
+    // entry. It ends the header; the line stays with the body.
     $._header_end,
     // The same position, when the `:` line is an attribute entry: the entry
     // stays in the header. The token has no width and only tells the parser
