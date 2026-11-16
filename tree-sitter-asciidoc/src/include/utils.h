@@ -77,7 +77,8 @@ typedef enum TokenType {
     TOKEN_DOC_TITLE_ATTR_MARKER,
     TOKEN_DOC_TITLE_ANCHOR_MARKER,
     TOKEN_HEADER_END,
-    TOKEN_HEADER_ENTRY
+    TOKEN_HEADER_ENTRY,
+    TOKEN_ATTRIBUTION_BREAK
 } TokenType;
 
 /// What `peek_heading_level` returns for a level-0 heading (`= Title`), after
@@ -108,7 +109,13 @@ static inline bool skip_white_space(TSLexer *lexer);
 static inline bool delimiter_line_ends(TSLexer *lexer);
 static inline bool heading_text_follows(TSLexer *lexer);
 static inline bool is_white_space(i32 ch);
-static inline bool continues_paragraph(TSLexer *lexer, bool in_list, bool in_table);
+// The longest line the scanner reads to judge a paragraph line. A longer line is
+// not judged and so ends the paragraph, as every line did before paragraphs
+// spanned lines.
+#define PARAGRAPH_PEEK 512
+static inline bool read_peek_line(TSLexer *lexer, i32 *line, usize *len);
+static inline bool is_hyphen_text_line(i32 const *line, usize len);
+static inline bool is_attribution_line(i32 const *line, usize len);
 static inline bool is_prose_line(i32 const *line, usize len, bool in_list, bool in_table);
 static inline bool is_cell_start_line(i32 const *line, usize len);
 static inline bool is_list_line(i32 const *line, usize len);

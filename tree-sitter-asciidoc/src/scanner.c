@@ -108,13 +108,25 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
     // it also ends at a list line. In error recovery every symbol is valid,
     // and the block-comment check above has already returned, so this never
     // runs then.
-    if((valid_symbols[TOKEN_PARAGRAPH_SOFT_BREAK] || valid_symbols[TOKEN_LIST_PARAGRAPH_SOFT_BREAK]) &&
+    if((valid_symbols[TOKEN_PARAGRAPH_SOFT_BREAK] || valid_symbols[TOKEN_LIST_PARAGRAPH_SOFT_BREAK] ||
+        valid_symbols[TOKEN_ATTRIBUTION_BREAK]) &&
        is_newline(lexer->lookahead)) {
         bool in_list = valid_symbols[TOKEN_LIST_PARAGRAPH_SOFT_BREAK];
         bool in_table = scanner_in_table(s);
         skip_line_ending(lexer);
         lexer->mark_end(lexer);
-        if(continues_paragraph(lexer, in_list, in_table)) {
+        i32 line[PARAGRAPH_PEEK];
+        usize len = 0;
+        if(!read_peek_line(lexer, line, &len)) {
+            return false;
+        }
+        // An attribution line directly under the paragraph ends it and is
+        // read before the prose check, which takes `-- v` as text in a list.
+        if(valid_symbols[TOKEN_ATTRIBUTION_BREAK] && is_attribution_line(line, len)) {
+            lexer->result_symbol = TOKEN_ATTRIBUTION_BREAK;
+            return true;
+        }
+        if(is_prose_line(line, len, in_list, in_table)) {
             lexer->result_symbol = in_list ? TOKEN_LIST_PARAGRAPH_SOFT_BREAK : TOKEN_PARAGRAPH_SOFT_BREAK;
             return true;
         }
@@ -391,7 +403,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                         }
                     }
 
-                    if(valid_symbols[TOKEN_LIST_MARKER_HYPHEN] && is_unordered_marker) {
+                    if(valid_symbols[TOKEN_LIST_MARKER_HYPHEN] && is_unordered_marker && run == 1) {
                         lexer->result_symbol = TOKEN_LIST_MARKER_HYPHEN;
                         return true;
                     }
@@ -1600,10 +1612,6 @@ static inline Node *scanner_top(Scanner const *self) {
     return &(self->buffer[self->len - 1]);
 }
 
-// The longest line `continues_paragraph` reads. A longer line is not judged and so
-// ends the paragraph, as every line did before paragraphs spanned lines.
-#define PARAGRAPH_PEEK 512
-
 /// Whether `ch` can begin a word: an ASCII letter or digit, or any non-ASCII
 /// character, which covers letters in other scripts.
 static inline bool is_word_start(i32 ch) {
@@ -1612,18 +1620,24 @@ static inline bool is_word_start(i32 ch) {
 }
 
 /// Reads the line the lexer is on, which the caller has already marked as lookahead,
-/// and says whether it is prose that continues a paragraph.
-static inline bool continues_paragraph(TSLexer *lexer, bool in_list, bool in_table) {
-    i32 line[PARAGRAPH_PEEK];
-    usize len = 0;
+/// into `line`, which holds `PARAGRAPH_PEEK` characters. Says false for a longer line.
+static inline bool read_peek_line(TSLexer *lexer, i32 *line, usize *len) {
+    *len = 0;
     while(!lexer->eof(lexer) && !is_newline(lexer->lookahead)) {
-        if(len == PARAGRAPH_PEEK) {
+        if(*len == PARAGRAPH_PEEK) {
             return false;
         }
-        line[len++] = lexer->lookahead;
+        line[(*len)++] = lexer->lookahead;
         lexer->advance(lexer, false);
     }
-    return is_prose_line(line, len, in_list, in_table);
+    return true;
+}
+
+/// Whether `line` is exactly two hyphens, a space and then text: the attribution
+/// line of a quoted paragraph (`-- Someone`).
+static inline bool is_attribution_line(i32 const *line, usize len) {
+    return len > 3 && line[0] == '-' && line[1] == '-' && line[2] == ' ' &&
+           is_hyphen_text_line(line, len);
 }
 
 /// Whether an unindented `line` opens a list item: the list part of
@@ -1721,10 +1735,29 @@ static inline bool is_dlist_line(i32 const *line, usize len) {
     return false;
 }
 
+/// Whether `line` is two or more hyphens, a blank and then text, such as `-- v`.
+/// Asciidoctor reads it as text, as only a single hyphen opens an item.  A run
+/// with nothing but blanks behind it is a delimiter line.
+static inline bool is_hyphen_text_line(i32 const *line, usize len) {
+    usize i = 0;
+    while(i < len && line[i] == '-') {
+        i++;
+    }
+    if(i < 2 || i >= len || !is_white_space(line[i])) {
+        return false;
+    }
+    while(i < len && is_white_space(line[i])) {
+        i++;
+    }
+    return i < len;
+}
+
 /// Conservative: a line is prose only when nothing about it could open a block.
 /// Asciidoctor does not end a paragraph at a list or description list line,
 /// so those join the paragraph, unless the paragraph is attached to a list
-/// item (`in_list`), where such a line starts the next item.  In a table
+/// item (`in_list`), where such a line starts the next item.  A line of
+/// hyphens and text (`---- v`) is prose everywhere; the attribution line
+/// (`-- v`) is taken before this check.  In a table
 /// (`in_table`) a line opening the next cell is no prose either, as
 /// Asciidoctor splits a table into cells before it reads their content.
 static inline bool is_prose_line(i32 const *line, usize len, bool in_list, bool in_table) {
@@ -1739,6 +1772,10 @@ static inline bool is_prose_line(i32 const *line, usize len, bool in_list, bool 
 
     if(is_list_line(line, len) || is_dlist_line(line, len)) {
         return !in_list;
+    }
+
+    if(is_hyphen_text_line(line, len)) {
+        return true;
     }
 
     // Opening with a marker character (`*`, `.`, `[`, `=`, `|`, …).

@@ -533,6 +533,10 @@ module.exports = grammar({
     // that the scanner has looked at the line, so the next scan reads the
     // entry's marker as usual.
     $._header_entry,
+    // The line ending of a paragraph that is directly followed by an
+    // attribution line (`-- Someone`). The attribution belongs to the
+    // paragraph only on the next line, not across a blank line.
+    $._attribution_break,
     // A token the scanner never produces. It is valid only inside a section,
     // so a parse state inside a section never shares its lexer mode with one
     // at the document level, where a section of any level may open too.
@@ -601,8 +605,7 @@ function paragraph($, soft_break) {
       seq(
         alias(/[^\r\n]+/, $.line),
         repeat(seq(soft_break, alias(/[^\r\n]+/, $.line))),
-        $._block_end,
-        optional($.quoted_line),
+        choice($._block_end, seq($._attribution_break, $.quoted_line)),
       ),
     ),
   );

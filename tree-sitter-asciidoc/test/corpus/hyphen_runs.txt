@@ -1,0 +1,190 @@
+====================|||
+hyphen runs: several hyphens and text are a paragraph, a single hyphen is an item
+====================|||
+
+para
+
+---- w
+
+-- v
+
+- real
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_hyphen))
+            (line)))))))
+
+====================|||
+hyphen runs: an attribution belongs to the paragraph directly above
+====================|||
+
+"Quoted"
+
+-- v
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+====================|||
+hyphen runs: an attribution stays in an attached paragraph
+====================|||
+
+- item
++
+"Quoted"
+-- Someone
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_hyphen))
+            (line)
+            (list_continuation)
+            (block_element
+              (section_block
+                (paragraph
+                  (line)
+                  (quoted_line
+                    (quoted_paragraph_marker)
+                    (line)))))))))))
+
+====================|||
+hyphen runs: a dash line after a title is a paragraph
+====================|||
+
+== Title
+
+-- after title
+
+-----|||
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
+
+====================|||
+hyphen runs: hyphen text continues the list item
+====================|||
+
+- a
+-- v
+--- x
+- b
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_hyphen))
+            (line))
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_hyphen))
+            (line)))))))
+
+====================|||
+hyphen runs: a hyphen run under a paragraph continues the paragraph
+====================|||
+
+para
+---- w
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line)))))
+
+====================|||
+hyphen runs: two hyphens and a tab are no attribution
+====================|||
+
+"Q"
+--	Someone
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line)))))
+
+====================|||
+hyphen runs: two hyphens and trailing blanks stay an open block after a list item
+====================|||
+
+- a longer item
+--  
+inside
+--
+
+-----|||
+
+(document
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_hyphen))
+            (line))))))
+  (block_element
+    (section_block
+      (open_block
+        (open_block_marker)
+        (section_block
+          (paragraph
+            (line)))
+        (open_block_marker)))))
