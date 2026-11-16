@@ -749,12 +749,16 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                 }
                 case '+': {
                     lexer->advance(lexer, false);
-                    if(valid_symbols[TOKEN_LIST_CONTINUATION]) {
-                        if(delimiter_line_ends(lexer)) {
+                    if(lexer->lookahead != '+') {
+                        // Only `+` plus blanks can be a continuation. The probe skips the
+                        // blanks, so the passthrough probe below, which needs `++++`
+                        // right at the line start, must not run after it.
+                        if(valid_symbols[TOKEN_LIST_CONTINUATION] && delimiter_line_ends(lexer)) {
                             lexer->mark_end(lexer);
                             lexer->result_symbol = TOKEN_LIST_CONTINUATION;
                             return true;
                         }
+                        break;
                     }
                     if(valid_symbols[TOKEN_PASSTHROUGH_BLOCK_MARKER]) {
                         if(parse_sequence(lexer, "+++")) {
