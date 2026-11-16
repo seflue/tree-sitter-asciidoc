@@ -319,3 +319,163 @@ x
       (block_comment_start_marker)
       (body)
       (block_comment_end_marker))))
+
+================|||
+text after a listing delimiter on the last line is a paragraph
+================|||
+
+para
+
+----x
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+================|||
+heading on the last line
+================|||
+
+para
+
+==== T
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section
+      (title3
+        (title_h3_marker)
+        (line)))))
+
+================|||
+quote attribution on the last line
+================|||
+
+"q"
+-- Author
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (quoted_line
+          (quoted_paragraph_marker)
+          (line))))))
+
+================|||
+open block opened on the last line
+================|||
+
+para
+
+--
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (open_block
+        (open_block_marker)
+        (MISSING open_block_marker)))))
+
+================|||
+table opened on the last line
+================|||
+
+para
+
+|===
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (MISSING table_block_marker)))))
+
+================|||
+literal block opened on the last line
+================|||
+
+para
+
+....
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (literal_block
+        (literal_block_marker)
+        (MISSING literal_block_marker)))))
+
+================|||
+csv table opened on the last line
+================|||
+
+para
+
+,===
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (csv_table_block
+        (csv_table_block_marker)
+        (MISSING csv_table_block_marker)))))
+
+================|||
+nested table closed on the last line
+================|||
+
+|===
+a|
+!===
+!x
+!===
+-------------------|||
+
+(document
+  (block_element
+    (section_block
+      (table_block
+        (table_block_marker)
+        (table_cell
+          (table_cell_attr))
+        (ntable_block
+          (ntable_block_marker)
+          (ntable_cell)
+          (ntable_block_marker))
+        (MISSING table_block_marker)))))
