@@ -1,0 +1,237 @@
+==========================
+five-slash block comment
+==========================
+
+para
+
+/////
+comment <<xref>> {attr}
+/////
+
+after
+
+---
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (block_comment
+      (block_comment_start_marker)
+      (body)
+      (block_comment_end_marker)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+=============================================================
+a shorter delimiter inside a longer comment is content
+=============================================================
+
+para
+
+/////
+x
+////
+still
+/////
+
+after
+
+---
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (block_comment
+      (block_comment_start_marker)
+      (body)
+      (block_comment_end_marker)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+=============================================================
+a longer delimiter inside a four-slash comment is content
+=============================================================
+
+////
+/////
+////
+
+after
+
+---
+
+(document
+  (block_element
+    (block_comment
+      (block_comment_start_marker)
+      (body)
+      (block_comment_end_marker)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+=============================================================
+a six-slash comment holds a five-slash pair
+=============================================================
+
+para
+
+//////
+/////
+x
+/////
+//////
+
+after
+
+---
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (block_comment
+      (block_comment_start_marker)
+      (body)
+      (block_comment_end_marker)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+=============================================================
+block anchor carries across a five-slash comment to its section
+=============================================================
+
+[[sec-a]]
+/////
+////
+/////
+== Section A
+
+text
+
+---
+
+(document
+  (block_element
+    (section
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
+
+=============================================================
+five-slash comment inside a sidebar
+=============================================================
+
+****
+inside
+
+/////
+hidden
+/////
+
+still inside
+****
+
+after
+
+---
+
+(document
+  (block_element
+    (section_block
+      (sidebar_block
+        (sidebar_block_start_marker)
+        (section_block
+          (paragraph
+            (line)))
+        (section_block
+          (block_comment
+            (block_comment_start_marker)
+            (body)
+            (block_comment_end_marker)))
+        (section_block
+          (paragraph
+            (line)))
+        (sidebar_block_end_marker))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+=============================================================
+five-slash delimiters with trailing whitespace
+=============================================================
+
+para
+
+/////  
+hidden
+/////	
+
+after
+
+---
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (block_comment
+      (block_comment_start_marker)
+      (body)
+      (block_comment_end_marker)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+=============================================================
+unterminated five-slash comment runs to the end of input
+=============================================================
+
+para
+
+/////
+never closed
+////
+
+---
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (block_comment
+      (block_comment_start_marker)
+      (body)
+      (block_comment_end_marker))))

@@ -12,7 +12,8 @@ typedef enum BlockKind {
     BLOCK_KIND_SIDEBAR,
     BLOCK_KIND_QUOTED,
     BLOCK_KIND_CSV_TABLE,
-    BLOCK_KIND_DSV_TABLE
+    BLOCK_KIND_DSV_TABLE,
+    BLOCK_KIND_COMMENT
 } BlockKind;
 
 typedef struct Node {

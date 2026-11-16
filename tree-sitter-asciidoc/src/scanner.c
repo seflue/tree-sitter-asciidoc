@@ -62,6 +62,7 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
         // the comment is followed by a token the grammar needs, such as the
         // end of a header.
         if(valid_symbols[TOKEN_BLOCK_COMMENT_END_MARKER]) {
+            scanner_pop_kind(s, BLOCK_KIND_COMMENT, 0);
             lexer->result_symbol = TOKEN_BLOCK_COMMENT_END_MARKER;
             return true;
         }
@@ -83,11 +84,18 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
         if(start_pos != 0) {
             return false;
         }
-        if(parse_sequence(lexer, "////")) {
-            if(delimiter_line_ends(lexer)) {
-                lexer->result_symbol = TOKEN_BLOCK_COMMENT_END_MARKER;
-                return true;
-            }
+        // Only the line that repeats the opener's slashes closes the comment. With no
+        // comment on the stack (error recovery, or an opener the stack had no room
+        // for) a plain `////` closes it.
+        Node *top = scanner_top(s);
+        usize expected = (top != NULL && top->kind == BLOCK_KIND_COMMENT) ? top->counter : 4;
+        usize run = 0;
+        consume('/', lexer, false, &run, USIZE_MAX);
+        if(run == expected && delimiter_line_ends(lexer)) {
+            lexer->mark_end(lexer);
+            scanner_pop_kind(s, BLOCK_KIND_COMMENT, 0);
+            lexer->result_symbol = TOKEN_BLOCK_COMMENT_END_MARKER;
+            return true;
         }
 
         return false;
@@ -669,12 +677,19 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                         if(parse_sequence(lexer, "//")) {
                             lexer->mark_end(lexer);
                             if(valid_symbols[TOKEN_BLOCK_COMMENT_START_MARKER]) {
-                                if(parse_sequence(lexer, "//")) {
-                                    if(delimiter_line_ends(lexer)) {
-                                        lexer->result_symbol = TOKEN_BLOCK_COMMENT_START_MARKER;
-                                        lexer->mark_end(lexer);
-                                        return true;
-                                    }
+                                // `////` and any longer run of slashes alone on its line.
+                                // Counted by hand: consume() would move the token end, which
+                                // has to stay after the `//` for the line comment fallback.
+                                usize run = 2;
+                                while(lexer->lookahead == '/') {
+                                    lexer->advance(lexer, false);
+                                    ++run;
+                                }
+                                if(run >= 4 && delimiter_line_ends(lexer)) {
+                                    lexer->mark_end(lexer);
+                                    scanner_push(s, BLOCK_KIND_COMMENT, run);
+                                    lexer->result_symbol = TOKEN_BLOCK_COMMENT_START_MARKER;
+                                    return true;
                                 }
                             }
                             lexer->result_symbol = TOKEN_LINE_COMMENT_MARKER;
@@ -1045,14 +1060,26 @@ static inline int peek_heading_level(TSLexer *lexer) {
 }
 
 /// With the lexer after the first `//` of a line, skip a block comment as the
-/// grammar reads it (`////` lines around the body) and stop at the end of its
-/// closing line. False if the line opens no block comment or nothing closes it.
+/// grammar reads it (lines of four or more `/` around the body, the closing line
+/// repeating the opener's slashes) and stop at the end of its closing line. False
+/// if the line opens no block comment or nothing closes it.
 static inline bool skip_block_comment(TSLexer *lexer) {
-    if(!parse_sequence(lexer, "//") || !delimiter_line_ends(lexer)) {
+    // Counted by hand: consume() would mark the token end, which the callers set.
+    usize open = 2;
+    while(lexer->lookahead == '/') {
+        lexer->advance(lexer, false);
+        ++open;
+    }
+    if(open < 4 || !delimiter_line_ends(lexer)) {
         return false;
     }
     while(skip_line_ending(lexer) && !lexer->eof(lexer)) {
-        if(parse_sequence(lexer, "////") && delimiter_line_ends(lexer)) {
+        usize run = 0;
+        while(lexer->lookahead == '/') {
+            lexer->advance(lexer, false);
+            ++run;
+        }
+        if(run == open && delimiter_line_ends(lexer)) {
             return true;
         }
         skip_rest_of_line(lexer);
