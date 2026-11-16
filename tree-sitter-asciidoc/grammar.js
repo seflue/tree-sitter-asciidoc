@@ -145,6 +145,23 @@ module.exports = grammar({
         repeat(choice($.element_attr, $.block_title, $.block_anchor, $._section_comment)),
       ),
 
+    // The attribute and anchor lines above a level-0 heading. They stay
+    // siblings of `document_title`, whose node the highlight queries colour
+    // as a heading. A block title above it is no part of the run, as
+    // Asciidoctor does not take the heading as a document header then.
+    _doc_title_attrs: $ =>
+      seq(
+        choice(
+          alias($._doc_title_element_attr, $.element_attr),
+          alias($._doc_title_block_anchor, $.block_anchor),
+        ),
+        repeat(choice($.element_attr, $.block_anchor, $._section_comment)),
+      ),
+    _doc_title_element_attr: $ =>
+      seq(alias($._doc_title_attr_marker, $.element_attr_marker), $._element_attr_body),
+    _doc_title_block_anchor: $ =>
+      seq(alias($._doc_title_anchor_marker, $.block_anchor_marker), $._block_anchor_body),
+
     // A document-level content block (no section heading).
     _doc_block: $ => doc_block($, $.paragraph),
 
@@ -505,6 +522,9 @@ module.exports = grammar({
     ...LEVELS.map(n => $[`_section_attr_marker_${n}`]),
     ...LEVELS.map(n => $[`_section_title_marker_${n}`]),
     ...LEVELS.map(n => $[`_section_anchor_marker_${n}`]),
+    // The same for a level-0 heading, the document title or a book part.
+    $._doc_title_attr_marker,
+    $._doc_title_anchor_marker,
     // A token the scanner never produces. It is valid only inside a section,
     // so a parse state inside a section never shares its lexer mode with one
     // at the document level, where a section of any level may open too.
@@ -550,7 +570,7 @@ function block_element($, doc_block, levels) {
   return prec.left(
     seq(
       choice(
-        $.document_title,
+        seq(optional($._doc_title_attrs), $.document_title),
         $.document_attr,
         ...levels.map(n => alias($[`_section${n}`], $.section)),
         alias(doc_block, $.section_block),

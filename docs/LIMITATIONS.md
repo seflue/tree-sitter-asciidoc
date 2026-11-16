@@ -76,6 +76,12 @@ At the document level a discrete heading (`[discrete]` or `[float]` above
 discrete heading inside the current section, where it starts no section of its
 own.
 
+## A block title above the document title
+
+An attribute or anchor line above `= Title` joins the document title. A block
+title (`.Caption`) in that run does not: Asciidoctor takes no document header
+from it, and the grammar leaves the run an `ERROR`.
+
 ## Inline substitution order
 
 The inline grammar reads passthroughs and quoted text in one pass, while

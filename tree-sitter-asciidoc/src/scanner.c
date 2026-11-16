@@ -952,6 +952,9 @@ static inline int peek_heading_level(TSLexer *lexer) {
                 lexer->advance(lexer, false);
                 run++;
             }
+            if(run == 1 && is_white_space(lexer->lookahead)) {
+                return HEADING_LEVEL_DOC_TITLE;
+            }
             return run >= 2 && run <= 6 && is_white_space(lexer->lookahead) ? run - 1 : 0;
         }
         if(c == '[') {
@@ -1019,6 +1022,16 @@ static inline bool skip_block_comment(TSLexer *lexer) {
 static inline TokenType section_marker(const bool *valid_symbols, TokenType first, int level, TokenType fallback) {
     if(level >= 1 && level <= 5 && valid_symbols[first + level - 1]) {
         return first + level - 1;
+    }
+    // A level-0 heading takes no block title above it, so only an attribute
+    // or anchor line has a variant for it.
+    if(level == HEADING_LEVEL_DOC_TITLE) {
+        TokenType doc_title = first == TOKEN_SECTION_ATTR_MARKER_1     ? TOKEN_DOC_TITLE_ATTR_MARKER
+                              : first == TOKEN_SECTION_ANCHOR_MARKER_1 ? TOKEN_DOC_TITLE_ANCHOR_MARKER
+                                                                       : fallback;
+        if(valid_symbols[doc_title]) {
+            return doc_title;
+        }
     }
     return fallback;
 }

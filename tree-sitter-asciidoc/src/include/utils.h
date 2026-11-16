@@ -73,8 +73,14 @@ typedef enum TokenType {
     TOKEN_SECTION_ANCHOR_MARKER_2,
     TOKEN_SECTION_ANCHOR_MARKER_3,
     TOKEN_SECTION_ANCHOR_MARKER_4,
-    TOKEN_SECTION_ANCHOR_MARKER_5
+    TOKEN_SECTION_ANCHOR_MARKER_5,
+    TOKEN_DOC_TITLE_ATTR_MARKER,
+    TOKEN_DOC_TITLE_ANCHOR_MARKER
 } TokenType;
+
+/// What `peek_heading_level` returns for a level-0 heading (`= Title`), after
+/// 1-5 for the section levels.
+enum { HEADING_LEVEL_DOC_TITLE = 6 };
 
 /// How much of a cell specifier a line-start check consumed before handing over.
 typedef enum {

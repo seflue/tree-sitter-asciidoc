@@ -135,3 +135,128 @@ text
     (section_block
       (paragraph
         (line)))))
+
+==================
+block anchor above the document title
+==================
+
+[[intro]]
+= Title
+
+Body.
+
+--------
+
+(document
+  (block_element
+    (block_anchor
+      (block_anchor_marker)
+      (id)
+      (block_anchor_marker))
+    (document_title
+      (title_h0_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+==================
+id shorthand above the document title
+==================
+
+[#intro.role]
+= Title
+
+--------
+
+(document
+  (block_element
+    (element_attr
+      (element_attr_marker)
+      (positional_attr
+        (id)
+        (role))
+      (element_attr_marker))
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+attribute run with a line comment above the document title
+==================
+
+[#intro]
+// note
+[[other]]
+= Title
+
+--------
+
+(document
+  (block_element
+    (element_attr
+      (element_attr_marker)
+      (positional_attr
+        (id))
+      (element_attr_marker))
+    (line_comment
+      (line_comment_marker)
+      (body))
+    (block_anchor
+      (block_anchor_marker)
+      (id)
+      (block_anchor_marker))
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+block anchor above a markdown document title
+==================
+
+[[intro]]
+# Title
+
+--------
+
+(document
+  (block_element
+    (block_anchor
+      (block_anchor_marker)
+      (id)
+      (block_anchor_marker))
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+block anchor above a level-0 heading after a section
+==================
+
+== A
+
+Text.
+
+[[part]]
+= Part
+
+--------
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line)))))
+  (block_element
+    (block_anchor
+      (block_anchor_marker)
+      (id)
+      (block_anchor_marker))
+    (document_title
+      (title_h0_marker)
+      (line))))

@@ -1711,8 +1711,25 @@
             "type": "CHOICE",
             "members": [
               {
-                "type": "SYMBOL",
-                "name": "document_title"
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "CHOICE",
+                    "members": [
+                      {
+                        "type": "SYMBOL",
+                        "name": "_doc_title_attrs"
+                      },
+                      {
+                        "type": "BLANK"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "document_title"
+                  }
+                ]
               },
               {
                 "type": "SYMBOL",
@@ -2824,6 +2841,90 @@
         }
       ]
     },
+    "_doc_title_attrs": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_doc_title_element_attr"
+              },
+              "named": true,
+              "value": "element_attr"
+            },
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_doc_title_block_anchor"
+              },
+              "named": true,
+              "value": "block_anchor"
+            }
+          ]
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "element_attr"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "block_anchor"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_section_comment"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "_doc_title_element_attr": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_doc_title_attr_marker"
+          },
+          "named": true,
+          "value": "element_attr_marker"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_element_attr_body"
+        }
+      ]
+    },
+    "_doc_title_block_anchor": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_doc_title_anchor_marker"
+          },
+          "named": true,
+          "value": "block_anchor_marker"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_block_anchor_body"
+        }
+      ]
+    },
     "_doc_block": {
       "type": "SEQ",
       "members": [
@@ -2864,8 +2965,25 @@
             "type": "CHOICE",
             "members": [
               {
-                "type": "SYMBOL",
-                "name": "document_title"
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "CHOICE",
+                    "members": [
+                      {
+                        "type": "SYMBOL",
+                        "name": "_doc_title_attrs"
+                      },
+                      {
+                        "type": "BLANK"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "document_title"
+                  }
+                ]
               },
               {
                 "type": "SYMBOL",
@@ -5066,6 +5184,14 @@
     {
       "type": "SYMBOL",
       "name": "_section_anchor_marker_5"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_doc_title_attr_marker"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_doc_title_anchor_marker"
     },
     {
       "type": "SYMBOL",

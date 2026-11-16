@@ -89,7 +89,12 @@ It also emits, at the start of a line:
   the parser closes the open section first and the run lands in the new one.
   The lookahead skips line and block comments between the lines of the run.
   A `[[` line becomes a block anchor only when the whole line is a valid
-  anchor (Asciidoctor's BlockAnchorRx) and something follows it
+  anchor (Asciidoctor's BlockAnchorRx) and something follows it. A `[` line
+  opens an attribute line only when it is an attribute list
+  (BlockAttributeListRx); trailing whitespace is ignored. A level-0 heading
+  (`= Title`, `# Title`) has its own tagged markers
+  (`_doc_title_attr_marker`, `_doc_title_anchor_marker`), so the run above it
+  is a sibling of `document_title` and closes an open section first.
 
 and, at the end of a line inside a paragraph:
 
