@@ -133,6 +133,37 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
         return false;
     }
 
+    // After a comment among the header entries, the next line either goes on
+    // with the header (an attribute entry, a block macro, a comment) or ends
+    // it. The tokens have no width and sit at the start of the line, so the
+    // next scan reads the line as usual. A blank line or the end of the input
+    // is left to the newline that ends the header.
+    if(valid_symbols[TOKEN_HEADER_MORE] && valid_symbols[TOKEN_HEADER_END] && start_pos == 0 &&
+       !lexer->eof(lexer) && !is_newline(lexer->lookahead)) {
+        lexer->mark_end(lexer);
+        i32 c = lexer->lookahead;
+        bool more = false;
+        if(c == ':') {
+            lexer->advance(lexer, false);
+            more = rest_of_line_is_attr_entry(lexer);
+        } else if(c == '/') {
+            // `//` is a comment line, `///` is text, `////` and longer
+            // delimiter lines are comment blocks.
+            usize run = skip_run(lexer, '/');
+            more = run == 2 || (run >= 4 && delimiter_line_ends(lexer));
+        } else if(is_ascii_alpha_lower(c)) {
+            while(is_ascii_alpha_lower(lexer->lookahead)) {
+                lexer->advance(lexer, false);
+            }
+            if(lexer->lookahead == ':') {
+                usize run = skip_run(lexer, ':');
+                more = run >= 2 && scan_rest_is_block_macro(lexer, run > 2);
+            }
+        }
+        lexer->result_symbol = more ? TOKEN_HEADER_MORE : TOKEN_HEADER_END;
+        return true;
+    }
+
     // A `:` line in the header slot that is no attribute entry ends the
     // header, and the line goes back to the body. Asciidoctor reads such a
     // line as a revision line only when it has a comma; the grammar leaves
@@ -688,6 +719,10 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                        valid_symbols[TOKEN_BLOCK_COMMENT_START_MARKER]) {
                         if(parse_sequence(lexer, "//")) {
                             lexer->mark_end(lexer);
+                            // Asciidoctor's CommentLineRx is `//` not followed by another
+                            // `/`: `/// x` is text. Only a delimiter line of four or more
+                            // slashes is a comment, and it is read below.
+                            bool third_slash = lexer->lookahead == '/';
                             if(valid_symbols[TOKEN_BLOCK_COMMENT_START_MARKER]) {
                                 // `////` and any longer run of slashes alone on its line. The
                                 // token end has to stay after the `//` for the line comment
@@ -699,6 +734,9 @@ bool tree_sitter_asciidoc_external_scanner_scan(void *payload, TSLexer *lexer, c
                                     lexer->result_symbol = TOKEN_BLOCK_COMMENT_START_MARKER;
                                     return true;
                                 }
+                            }
+                            if(third_slash) {
+                                return false;
                             }
                             lexer->result_symbol = TOKEN_LINE_COMMENT_MARKER;
                             return true;
@@ -1821,6 +1859,19 @@ static inline bool is_prose_line(i32 const *line, usize len, bool in_list, bool 
 
     if(is_hyphen_text_line(line, len)) {
         return true;
+    }
+
+    // Three or more slashes: text, unless the line is a comment delimiter
+    // (four or more slashes alone on the line). `//` itself is a comment.
+    if(len >= 3 && line[0] == '/' && line[1] == '/' && line[2] == '/') {
+        usize i = 0;
+        while(i < len && line[i] == '/') {
+            i++;
+        }
+        while(i < len && is_white_space(line[i])) {
+            i++;
+        }
+        return i < len || len < 4 || line[3] != '/';
     }
 
     // Opening with a marker character (`*`, `.`, `[`, `=`, `|`, …).

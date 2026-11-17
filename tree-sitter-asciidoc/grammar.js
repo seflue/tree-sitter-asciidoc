@@ -534,6 +534,10 @@ module.exports = grammar({
     // that the scanner has looked at the line, so the next scan reads the
     // entry's marker as usual.
     $._header_entry,
+    // After a comment among the header entries: a zero-width token in front
+    // of a line that goes on with the header (an entry, a block macro or a
+    // comment). Any other line gets `_header_end` there.
+    $._header_more,
     // The line ending of a paragraph that is directly followed by an
     // attribution line (`-- Someone`). The attribution belongs to the
     // paragraph only on the next line, not across a blank line.

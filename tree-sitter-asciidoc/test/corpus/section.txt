@@ -466,7 +466,7 @@ c
         (line)))))
 
 ==================
-attribute run with a triple-slash line above the first heading
+triple-slash line under an attribute line is text, no comment
 ==================
 
 [appendix]
@@ -477,15 +477,16 @@ attribute run with a triple-slash line above the first heading
 
 (document
   (block_element
-    (section
+    (section_block
       (element_attr
         (element_attr_marker)
         (positional_attr
           (block_style))
         (element_attr_marker))
-      (line_comment
-        (line_comment_marker)
-        (body))
+      (paragraph
+        (line))))
+  (block_element
+    (section
       (title1
         (title_h1_marker)
         (line)))))

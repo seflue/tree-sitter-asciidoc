@@ -9,6 +9,8 @@ exports.rules = {
       $.title_h0_marker,
       $._WHITE_SPACE,
       $.line,
+      // Asciidoctor skips comments at every line boundary of the header.
+      repeat($._header_comment),
       choice(
         seq(
           $.author_line,
@@ -29,7 +31,30 @@ exports.rules = {
         $._header_attrs,
       ),
     ),
-  _header_attrs: $ => seq(repeat(choice($.document_attr, $.block_macro)), $._block_end),
+  // Starts with an entry, so it never overlaps the comment repeats before it.
+  // The run ends at a blank line or the end of the input.
+  _header_attrs: $ => choice($._block_end, seq($._header_attr, $._header_run)),
+  _header_run: $ =>
+    choice(
+      $._block_end,
+      seq($._header_attr, $._header_run),
+      seq($._header_comment, $._header_tail),
+    ),
+  // After a comment the next line decides, and the scanner tells: a line
+  // that goes on with the header (entry, block macro, comment) gets the
+  // zero-width `_header_more`, any other line the zero-width `_header_end`
+  // and stays with the body. A blank line or the end of the input is left
+  // to `_block_end`.
+  _header_tail: $ =>
+    choice(
+      $._block_end,
+      $._header_end,
+      seq(
+        $._header_more,
+        choice(seq($._header_attr, $._header_run), seq($._header_comment, $._header_tail)),
+      ),
+    ),
+  _header_attr: $ => choice($.document_attr, $.block_macro),
   // A comment line ends with its newline; a comment block does not, and
   // without the explicit newline the title would end there.
   _header_comment: $ => choice($.line_comment, seq($.block_comment, $._block_end)),

@@ -255,12 +255,9 @@ after
       (paragraph
         (line))))
   (block_element
-    (line_comment
-      (line_comment_marker)
-      (body)))
-  (block_element
     (section_block
       (paragraph
+        (line)
         (line))))
   (block_element
     (section_block

@@ -1,0 +1,798 @@
+===========
+comment block under the title then attribute entry
+===========
+
+= Title
+////
+x
+////
+:attr: v
+
+body {attr}
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comment block under the title then section
+===========
+
+= T
+////
+x
+////
+
+== S
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+===========
+longer comment delimiter under the title
+===========
+
+= Title
+/////
+x
+/////
+:attr: v
+
+body {attr}
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comment block under the title then author and revision line (the entry after the revision line is a body entry, kept on purpose)
+===========
+
+= T
+////
+x
+////
+Jane Doe
+v1.0
+:a: b
+
+body
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber))))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comment line under the title then author line
+===========
+
+= T
+// lc
+Jane Doe
+
+body {author}
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (line_comment
+        (line_comment_marker)
+        (body))
+      (author_line
+        (author
+          (firstname)
+          (lastname)))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comment line and comment block under the title
+===========
+
+= T
+// lc
+////
+x
+////
+:a: b
+
+body {a}
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (line_comment
+        (line_comment_marker)
+        (body))
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comments between header attribute entries
+===========
+
+= T
+:a: b
+////
+x
+////
+:c: d
+// lc
+:e: f
+
+body
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))
+      (line_comment
+        (line_comment_marker)
+        (body))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comment block after the revision line ends the header (as an entry there already does, kept on purpose)
+===========
+
+= T
+Jane Doe
+v1.0
+////
+x
+////
+:a: b
+
+body
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (revision_line
+        (revnumber))))
+  (block_element
+    (block_comment
+      (block_comment_start_marker)
+      (body)
+      (block_comment_end_marker)))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+unterminated comment block under the title swallows the rest (Asciidoctor warns and does the same)
+===========
+
+= T
+////
+x
+:a: b
+
+== S
+
+body {a}
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker)))))
+
+===========
+unterminated comment block under the title at the end of the input
+===========
+
+= T
+////
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (block_comment
+        (block_comment_start_marker)
+        (block_comment_end_marker)))))
+
+===========
+comment block under the title then paragraph
+===========
+
+= T
+////
+x
+////
+
+body para
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comment block under the title then a line without blank line is the author
+===========
+
+= T
+////
+x
+////
+body para {author}
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))
+      (author_line
+        (author
+          (firstname)
+          (middlename)
+          (lastname))))))
+
+===========
+blank line between title and comment block ends the header
+===========
+
+= T
+
+////
+x
+////
+:a: b
+
+body
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)))
+  (block_element
+    (block_comment
+      (block_comment_start_marker)
+      (body)
+      (block_comment_end_marker)))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comment block under a book part title
+===========
+
+= Book
+:doctype: book
+
+= Part One
+////
+x
+////
+
+== Chapter
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))))
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+===========
+three-slash line under the title is no comment but the author, as in Asciidoctor
+===========
+
+= T
+/// x
+
+body
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comment line after an entry, then a body line, ends the header
+===========
+
+= T
+:a: b
+// c
+Intro
+
+== S
+
+{a}
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))
+      (line_comment
+        (line_comment_marker)
+        (body))))
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
+
+===========
+comment block after an entry, then a body line, ends the header
+===========
+
+= T
+:a: b
+////
+c
+////
+Intro
+
+== S
+
+{a}
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))))
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (section_block
+        (paragraph
+          (line))))))
+
+===========
+comment after an entry, then a block attribute line, ends the header
+===========
+
+= T
+:a: b
+// c
+[NOTE]
+Intro
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))
+      (line_comment
+        (line_comment_marker)
+        (body))))
+  (block_element
+    (section_block
+      (element_attr
+        (element_attr_marker)
+        (positional_attr
+          (block_style))
+        (element_attr_marker))
+      (paragraph
+        (line)))))
+
+===========
+comment after an entry behind the author line, then a body line
+===========
+
+= T
+Jane Doe
+:a: b
+// c
+Intro
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))
+      (line_comment
+        (line_comment_marker)
+        (body))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comment after an entry under a book part title, then a body line
+===========
+
+= Book
+:doctype: book
+
+= Part One
+:a: b
+// c
+Intro
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))))
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))
+      (line_comment
+        (line_comment_marker)
+        (body))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comment after an entry, then a block macro, stays in the header
+===========
+
+= T
+:a: b
+// c
+include::x.adoc[]
+
+body
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))
+      (line_comment
+        (line_comment_marker)
+        (body))
+      (block_macro
+        (block_macro_name)
+        (target))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+comment after an entry, then a three-slash line, ends the header
+===========
+
+= T
+:a: b
+// c
+/// x
+
+body
+
+-----
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))
+      (line_comment
+        (line_comment_marker)
+        (body))))
+  (block_element
+    (section_block
+      (paragraph
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+two comments in a row after an entry, then another entry
+===========
+
+= T
+:a: b
+// c
+////
+x
+////
+:d: e
+
+{d}
+
+---
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))
+      (line_comment
+        (line_comment_marker)
+        (body))
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
