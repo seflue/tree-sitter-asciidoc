@@ -1,0 +1,154 @@
+====================================================
+entry line glued to a paragraph is paragraph text
+====================================================
+
+Para.
+:glued: yes
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line)))))
+
+====================================================
+unset entry line glued to a paragraph is paragraph text
+====================================================
+
+Para.
+:glued!:
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line)))))
+
+====================================================
+colon line glued to a paragraph is paragraph text
+====================================================
+
+Para.
+:not entry
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (paragraph
+        (line)
+        (line)))))
+
+====================================================
+entry line glued to a list item is item text
+====================================================
+
+* item
+:glued: yes
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (list
+        (unordered_list
+          (unordered_list_item
+            (unordered_list_marker
+              (list_marker_star))
+            (line)))))))
+
+====================================================
+entry line glued to description text is description text
+====================================================
+
+term:: desc
+more
+:glued: yes
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (description_list
+        (description_list_item
+          (term)
+          (description_marker)
+          (line))))))
+
+====================================================
+entry line below an entry is an entry
+====================================================
+
+:a: 1
+:b: 2
+
+--------
+
+(document
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line)))
+  (block_element
+    (document_attr
+      (document_attr_marker)
+      (attr_name)
+      (document_attr_marker)
+      (line))))
+
+====================================================
+entry line below a section title is an entry
+====================================================
+
+== Section
+:a: 1
+
+--------
+
+(document
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line)))))
+
+====================================================
+entry line below the author line is a header entry
+====================================================
+
+= Document
+Ada Lovelace
+:a: 1
+
+--------
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (author_line
+        (author
+          (firstname)
+          (lastname)))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line)))))

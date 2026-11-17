@@ -1874,6 +1874,13 @@ static inline bool is_prose_line(i32 const *line, usize len, bool in_list, bool 
         return i < len || len < 4 || line[3] != '/';
     }
 
+    // A colon line, an attribute entry such as `:name: value` included, is text:
+    // Asciidoctor reads an entry only where a block may start, not inside a
+    // paragraph or the text of an item.
+    if(line[0] == ':') {
+        return true;
+    }
+
     // Opening with a marker character (`*`, `.`, `[`, `=`, `|`, …).
     if(!is_word_start(line[0])) {
         return false;
