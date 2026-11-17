@@ -1,4 +1,10 @@
-(document_title) @markup.heading.1
+;; The document title node holds the whole header, author and revision
+;; lines included, so only its marker and title text are the heading.
+(document_title
+  [
+    (title_h0_marker)
+    (line)
+  ] @markup.heading.1)
 
 (title1) @markup.heading.2
 
