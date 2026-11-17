@@ -1008,7 +1008,10 @@ static inline bool rest_of_line_is_attr_list(TSLexer *lexer) {
 /// run across entries for every heading level; the grammar does so only for
 /// level 0, because the section runs (section_attrs_rules) take no
 /// document_attr yet. For any other result behind an entry (a level 1-5
-/// heading, other text, the end of input or a block title line) the result is 0.
+/// heading, other text or the end of input) the result is 0. A block title
+/// line that the lookahead skips (before or behind an entry) gives 0 as well,
+/// because the document title run cannot hold a block title. A run that starts
+/// at a block title gets no doc-title marker anyway (see section_marker).
 static inline int peek_heading_level(TSLexer *lexer) {
     bool entry_skipped = false;
     int level = peek_heading_level_in_run(lexer, &entry_skipped);
@@ -1019,6 +1022,7 @@ static inline int peek_heading_level(TSLexer *lexer) {
 }
 
 static inline int peek_heading_level_in_run(TSLexer *lexer, bool *entry_skipped) {
+    bool title_skipped = false;
     for(;;) {
         if(!skip_line_ending(lexer) || lexer->eof(lexer)) {
             return -1;
@@ -1059,7 +1063,7 @@ static inline int peek_heading_level_in_run(TSLexer *lexer, bool *entry_skipped)
         }
         if(c == ':') {
             lexer->advance(lexer, false);
-            if(!rest_of_line_is_attr_entry(lexer)) {
+            if(title_skipped || !rest_of_line_is_attr_entry(lexer)) {
                 return 0;
             }
             // A value line ending in a backslash goes on in the next line.
@@ -1087,6 +1091,7 @@ static inline int peek_heading_level_in_run(TSLexer *lexer, bool *entry_skipped)
                 return 0;
             }
             skip_rest_of_line(lexer);
+            title_skipped = true;
             continue;
         }
         if(c == '/') {

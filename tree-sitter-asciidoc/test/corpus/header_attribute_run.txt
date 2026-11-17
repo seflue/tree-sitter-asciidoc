@@ -419,3 +419,55 @@ book part without a run
       (title1
         (title_h1_marker)
         (line)))))
+
+==================
+block title above an entry above the document title (Asciidoctor reads the entry and gives the anchor and title to a level-0 section; the paragraph is the pre-existing tree, kept on purpose)
+==================
+
+[[x]]
+.Title
+:a: b
+= T
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (block_title
+        (block_title_marker)
+        (line))
+      (paragraph
+        (line))))
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line))))
+
+==================
+non-entry colon line between anchor and title (Asciidoctor makes one paragraph of the last two lines, a divergence that already exists on main)
+==================
+
+[[x]]
+:a:b
+= T
+
+--------
+
+(document
+  (block_element
+    (section_block
+      (block_anchor
+        (block_anchor_marker)
+        (id)
+        (block_anchor_marker))
+      (paragraph
+        (line))))
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line))))
