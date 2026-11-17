@@ -49,8 +49,21 @@
   (id) @markup.link.label
   (reftext) @markup.link @markup.link.url)
 
+; A word such as "link" in prose is a `macro_name` too, so only a macro's
+; own name is a keyword.
+(inline_macro
+  (macro_name) @keyword)
+
+(footnote
+  (macro_name) @keyword)
+
+(stem_macro
+  (macro_name) @keyword)
+
+(macro_passthrough
+  (macro_name) @keyword)
+
 [
-  (macro_name)
   "((("
   ")))"
   "(("
