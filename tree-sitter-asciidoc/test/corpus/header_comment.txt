@@ -491,7 +491,7 @@ body
         (line)))))
 
 ===========
-comment line after an entry, then a body line, ends the header
+comment line after an entry, then a body line, ends the header (Asciidoctor reads it as the author line; kept as body, as without the comment)
 ===========
 
 = T
@@ -532,7 +532,7 @@ Intro
           (line))))))
 
 ===========
-comment block after an entry, then a body line, ends the header
+comment block after an entry, then a body line, ends the header (Asciidoctor reads it as the author line; kept as body, as without the comment)
 ===========
 
 = T
@@ -576,7 +576,7 @@ Intro
           (line))))))
 
 ===========
-comment after an entry, then a block attribute line, ends the header
+comment after an entry, then a block attribute line, ends the header (Asciidoctor reads it as the author line and Intro as the revision line; kept as body, as without the comment)
 ===========
 
 = T
@@ -611,7 +611,7 @@ Intro
         (line)))))
 
 ===========
-comment after an entry behind the author line, then a body line
+comment after an entry behind the author line, then a body line (Asciidoctor reads it as the revision line; kept as body, as without the comment)
 ===========
 
 = T
@@ -645,7 +645,7 @@ Intro
         (line)))))
 
 ===========
-comment after an entry under a book part title, then a body line
+comment after an entry under a book part title, then a body line (a paragraph of the part, as in Asciidoctor)
 ===========
 
 = Book
@@ -720,7 +720,7 @@ body
         (line)))))
 
 ===========
-comment after an entry, then a three-slash line, ends the header
+comment after an entry, then a three-slash line, ends the header (Asciidoctor reads it as the author line; kept as body, as without the comment)
 ===========
 
 = T
@@ -787,6 +787,49 @@ x
         (block_comment_start_marker)
         (body)
         (block_comment_end_marker))
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))))
+  (block_element
+    (section_block
+      (paragraph
+        (line)))))
+
+===========
+block comment, then a line comment, then another entry
+===========
+
+= T
+:a: b
+////
+x
+////
+// d
+:e: f
+
+{e}
+
+---
+
+(document
+  (block_element
+    (document_title
+      (title_h0_marker)
+      (line)
+      (document_attr
+        (document_attr_marker)
+        (attr_name)
+        (document_attr_marker)
+        (line))
+      (block_comment
+        (block_comment_start_marker)
+        (body)
+        (block_comment_end_marker))
+      (line_comment
+        (line_comment_marker)
+        (body))
       (document_attr
         (document_attr_marker)
         (attr_name)

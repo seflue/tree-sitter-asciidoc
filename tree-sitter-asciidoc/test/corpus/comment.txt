@@ -161,6 +161,7 @@ three-slash line inside a list item is text, the next item stays
 
 * a
 /// x
+more
 * b
 
 ---
@@ -185,6 +186,7 @@ four-slash line with text inside a list item is text, the next item stays
 
 * a
 //// x
+more
 * b
 
 ---
