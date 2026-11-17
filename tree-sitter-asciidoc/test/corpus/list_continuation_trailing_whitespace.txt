@@ -89,6 +89,8 @@ plus and a passthrough marker after a list item is not a passthrough block
 + +++
 x
 ++++
+y
+++++
 
 -------------------|||
 
@@ -106,8 +108,12 @@ x
       (paragraph
         (line)
         (line))))
-  (ERROR
-    (passthrough_block_marker)))
+  (block_element
+    (section_block
+      (passthrough_block
+        (passthrough_block_marker)
+        (listing_block_body)
+        (passthrough_block_marker)))))
 
 ================|||
 plus with text after a list item is no continuation
