@@ -118,6 +118,9 @@
 
 (ident_block) @markup.raw.block
 
+(literal_block
+  (literal_block_body) @markup.raw.block)
+
 (callout_list_marker) @punctuation.special
 
 (block_macro
