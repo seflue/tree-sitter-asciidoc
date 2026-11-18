@@ -20,6 +20,14 @@
 
 (uri_label) @markup.link.label
 
+; The angle brackets of `<https://example.org>` are markup: Asciidoctor drops
+; them from the output.
+(autolink
+  [
+    "<"
+    ">"
+  ] @punctuation.bracket)
+
 [
   "["
   "]"

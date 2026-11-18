@@ -8,6 +8,15 @@ exports.rules = {
       seq('"', $.uri, '"'),
       seq('"', $.labled_uri, '"'),
     ),
+  // `<https://example.org>`: Asciidoctor drops the brackets and ends the URL
+  // at the first `>`. Without a `>` the `<` is punctuation before a bare URL,
+  // which may itself contain a `>`; both readings parse, so the bracketed one
+  // wins by dynamic precedence.  Only a scheme URL is a link in angle
+  // brackets: `<www.example.org>` falls back to `<` before a bare URL that
+  // takes the `>` along.
+  _angled_autolink: $ =>
+    prec.dynamic(1, seq('<', alias($._angled_uri, $.uri), '>')),
+  _angled_uri: $ => alias($._angled_link_url, $.link_url),
   labled_uri: $ => prec(1, seq($.uri, seq('[', optional($.uri_label), ']'))),
 
   uri_label: $ => repeat1(escaped_ch(']', false, $.replacement)),
@@ -17,6 +26,13 @@ exports.rules = {
       choice(seq(/\w[\w\d+.-][\w\d+.-]*:\/\//), /www\./i),
       prec.right(anySep1($._uri_segment, '.')),
     ),
+  _angled_link_url: $ =>
+    seq(
+      /\w[\w\d+.-][\w\d+.-]*:\/\//,
+      prec.right(anySep1($._angled_uri_segment, '.')),
+    ),
+  // biome-ignore lint/complexity/noUselessEscapeInRegex: xxx
+  _angled_uri_segment: $ => /[^\.\s\[\]\"<>]+/,
   // biome-ignore lint/complexity/noUselessEscapeInRegex: xxx
   _uri_segment: $ => /[^\.\s\[\]\"]+/,
 

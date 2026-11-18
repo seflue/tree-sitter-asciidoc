@@ -25,6 +25,15 @@
           "name": "autolink"
         },
         {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_angled_autolink"
+          },
+          "named": true,
+          "value": "autolink"
+        },
+        {
           "type": "SYMBOL",
           "name": "passthrough"
         },
@@ -161,6 +170,41 @@
         }
       ]
     },
+    "_angled_autolink": {
+      "type": "PREC_DYNAMIC",
+      "value": 1,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "<"
+          },
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_angled_uri"
+            },
+            "named": true,
+            "value": "uri"
+          },
+          {
+            "type": "STRING",
+            "value": ">"
+          }
+        ]
+      }
+    },
+    "_angled_uri": {
+      "type": "ALIAS",
+      "content": {
+        "type": "SYMBOL",
+        "name": "_angled_link_url"
+      },
+      "named": true,
+      "value": "link_url"
+    },
     "labled_uri": {
       "type": "PREC",
       "value": 1,
@@ -284,6 +328,48 @@
           }
         }
       ]
+    },
+    "_angled_link_url": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "\\w[\\w\\d+.-][\\w\\d+.-]*:\\/\\/"
+        },
+        {
+          "type": "PREC_RIGHT",
+          "value": 0,
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_angled_uri_segment"
+              },
+              {
+                "type": "REPEAT",
+                "content": {
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "STRING",
+                      "value": "."
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "_angled_uri_segment"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "_angled_uri_segment": {
+      "type": "PATTERN",
+      "value": "[^\\.\\s\\[\\]\\\"<>]+"
     },
     "_uri_segment": {
       "type": "PATTERN",
@@ -2773,6 +2859,10 @@
   "conflicts": [
     [
       "roled_text",
+      "_punctuation"
+    ],
+    [
+      "_angled_autolink",
       "_punctuation"
     ]
   ],

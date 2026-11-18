@@ -119,3 +119,77 @@ a.b-c_d@a.b[aaa]
         (uri
           (email))
         (uri_label)))))
+
+====================
+autolink in angle brackets
+====================
+
+<https://example.org>
+<https://example.org/>x
+(<https://example.org>)
+
+-----
+
+(inline
+  (inline_element
+    (autolink
+      (uri
+        (link_url))))
+  (inline_element
+    (autolink
+      (uri
+        (link_url))))
+  (inline_element
+    (word))
+  (inline_element)
+  (inline_element
+    (autolink
+      (uri
+        (link_url))))
+  (inline_element))
+
+====================
+autolink closes at the first angle bracket
+====================
+
+<https://example.org>>
+
+-----
+
+(inline
+  (inline_element
+    (autolink
+      (uri
+        (link_url))))
+  (inline_element))
+
+====================
+angle bracket without a close stays punctuation
+====================
+
+<https://example.org b
+
+-----
+
+(inline
+  (inline_element)
+  (inline_element
+    (autolink
+      (uri
+        (link_url))))
+  (inline_element
+    (word)))
+
+====================
+bare autolink keeps a closing angle bracket
+====================
+
+https://example.org>x
+
+-----
+
+(inline
+  (inline_element
+    (autolink
+      (uri
+        (link_url)))))

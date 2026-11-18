@@ -70,7 +70,7 @@ module.exports = grammar({
     $._highlight_double_begin,
   ],
   precedences: $ => [[$.autolink, $._punctuation]],
-  conflicts: $ => [[$.roled_text, $._punctuation]],
+  conflicts: $ => [[$.roled_text, $._punctuation], [$._angled_autolink, $._punctuation]],
 
   rules: {
     inline: $ => repeat($.inline_element),
@@ -79,6 +79,7 @@ module.exports = grammar({
         $.replacement,
         $.word,
         $.autolink,
+        alias($._angled_autolink, $.autolink),
         $.passthrough,
         $.macro_passthrough,
         $._punctuation,
