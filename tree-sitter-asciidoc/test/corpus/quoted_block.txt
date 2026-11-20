@@ -46,9 +46,15 @@ and as necessary in the political world as storms in the physical."
         (element_attr_marker))
       (quoted_block
         (quoted_block_start_marker)
-        (line)
-        (line)
-        (line)
+        (section_block
+          (paragraph
+            (line)))
+        (section_block
+          (paragraph
+            (line)))
+        (section_block
+          (paragraph
+            (line)))
         (quoted_block_end_marker))))
   (block_element
     (section_block
@@ -108,13 +114,17 @@ ________
     (section_block
       (quoted_block
         (quoted_block_start_marker)
-        (line)
+        (section_block
+          (paragraph
+            (line)))
         (quoted_block_end_marker))))
   (block_element
     (section_block
       (quoted_block
         (quoted_block_start_marker)
-        (line)
+        (section_block
+          (paragraph
+            (line)))
         (quoted_block_end_marker)))))
 
 ===================================
@@ -138,10 +148,93 @@ ______
     (section_block
       (quoted_block
         (quoted_block_start_marker)
-        (line)
-        (quoted_block
-          (quoted_block_start_marker)
-          (line)
-          (quoted_block_end_marker))
-        (line)
+        (section_block
+          (paragraph
+            (line)))
+        (section_block
+          (quoted_block
+            (quoted_block_start_marker)
+            (section_block
+              (paragraph
+                (line)))
+            (quoted_block_end_marker)))
+        (section_block
+          (paragraph
+            (line)))
         (quoted_block_end_marker)))))
+
+===================================
+quoted_block_compound
+===================================
+
+____
+First para
+line two.
+
+Second para.
+
+* item
+* item2
+
+****
+inner
+****
+____
+
+-----
+
+(document
+  (block_element
+    (section_block
+      (quoted_block
+        (quoted_block_start_marker)
+        (section_block
+          (paragraph
+            (line)
+            (line)))
+        (section_block
+          (paragraph
+            (line)))
+        (section_block
+          (list
+            (unordered_list
+              (unordered_list_item
+                (unordered_list_marker
+                  (list_marker_star))
+                (line))
+              (unordered_list_item
+                (unordered_list_marker
+                  (list_marker_star))
+                (line)))))
+        (section_block
+          (sidebar_block
+            (sidebar_block_start_marker)
+            (section_block
+              (paragraph
+                (line)))
+            (sidebar_block_end_marker)))
+        (quoted_block_end_marker)))))
+
+===================================
+quoted_block_unclosed
+===================================
+
+____
+Unclosed.
+
+More.
+
+-----
+
+(document
+  (block_element
+    (section_block
+      (quoted_block
+        (quoted_block_start_marker)
+        (section_block
+          (paragraph
+            (line)))
+        (section_block
+          (paragraph
+            (line)))
+        (MISSING quoted_block_end_marker)))))

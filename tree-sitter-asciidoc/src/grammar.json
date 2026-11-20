@@ -5141,17 +5141,8 @@
           {
             "type": "REPEAT",
             "content": {
-              "type": "CHOICE",
-              "members": [
-                {
-                  "type": "SYMBOL",
-                  "name": "line"
-                },
-                {
-                  "type": "SYMBOL",
-                  "name": "quoted_block"
-                }
-              ]
+              "type": "SYMBOL",
+              "name": "section_block"
             }
           },
           {

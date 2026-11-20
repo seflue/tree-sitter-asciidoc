@@ -115,7 +115,9 @@ after
     (section_block
       (quoted_block
         (quoted_block_start_marker)
-        (line)
+        (section_block
+          (paragraph
+            (line)))
         (quoted_block_end_marker))))
   (block_element
     (section_block

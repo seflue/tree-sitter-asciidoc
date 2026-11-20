@@ -1021,19 +1021,15 @@
       "required": true,
       "types": [
         {
-          "type": "line",
-          "named": true
-        },
-        {
-          "type": "quoted_block",
-          "named": true
-        },
-        {
           "type": "quoted_block_end_marker",
           "named": true
         },
         {
           "type": "quoted_block_start_marker",
+          "named": true
+        },
+        {
+          "type": "section_block",
           "named": true
         }
       ]

@@ -441,7 +441,7 @@ module.exports = grammar({
       prec.left(
         seq(
           $.quoted_block_start_marker,
-          repeat(choice($.line, $.quoted_block)),
+          repeat($.section_block),
           $.quoted_block_end_marker,
         ),
       ),
