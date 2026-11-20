@@ -111,8 +111,8 @@
 (document_attr
   (attr_name) @property)
 
-(block_style) @type
 (positional_attr) @attribute
+(block_style) @type
 (id) @label
 (block_anchor
   (reftext) @markup.link.label)
@@ -164,41 +164,89 @@
   (element_attr
     (element_attr_marker) @comment.note
     (positional_attr (block_style) @_style @comment.note)
-    (element_attr_marker) @comment.note)
+    (element_attr_marker) @comment.note))
+  (#any-of? @_style "NOTE" "TIP"))
+
+((section_block
+  (element_attr
+    (element_attr_marker)
+    .
+    (positional_attr) @_style)
   (delimited_block
     (delimited_block_start_marker) @comment.note
+    (section_block
+      (paragraph) @comment.note)*
     (delimited_block_end_marker) @comment.note))
-  (#any-of? @_style "NOTE" "TIP"))
+  (#match? @_style "^(NOTE|TIP)([#.%]|$)"))
 
 ((section_block
   (element_attr
     (element_attr_marker) @comment.warning
     (positional_attr (block_style) @_style @comment.warning)
-    (element_attr_marker) @comment.warning)
+    (element_attr_marker) @comment.warning))
+  (#any-of? @_style "CAUTION" "WARNING"))
+
+((section_block
+  (element_attr
+    (element_attr_marker)
+    .
+    (positional_attr) @_style)
   (delimited_block
     (delimited_block_start_marker) @comment.warning
+    (section_block
+      (paragraph) @comment.warning)*
     (delimited_block_end_marker) @comment.warning))
-  (#any-of? @_style "CAUTION" "WARNING"))
+  (#match? @_style "^(CAUTION|WARNING)([#.%]|$)"))
 
 ((section_block
   (element_attr
     (element_attr_marker) @comment.error
     (positional_attr (block_style) @_style @comment.error)
-    (element_attr_marker) @comment.error)
-  (delimited_block
-    (delimited_block_start_marker) @comment.error
-    (delimited_block_end_marker) @comment.error))
+    (element_attr_marker) @comment.error))
   (#eq? @_style "IMPORTANT"))
 
 ((section_block
   (element_attr
-    (positional_attr
-      (block_style) @_style))
+    (element_attr_marker)
+    .
+    (positional_attr) @_style)
+  (delimited_block
+    (delimited_block_start_marker) @comment.error
+    (section_block
+      (paragraph) @comment.error)*
+    (delimited_block_end_marker) @comment.error))
+  (#match? @_style "^IMPORTANT([#.%]|$)"))
+
+((section_block
+  (element_attr
+    (element_attr_marker)
+    .
+    (positional_attr) @_style)
   (listing_block
     (listing_block_body) @markup.raw.block))
-  (#not-any-of? @_style
-    "a2s" "barcode" "blockdiag" "bpmn" "bytefield" "d2" "dbml" "diagrams" "ditaa" "dpic" "erd"
-    "gnuplot" "graphviz" "lilypond" "meme" "mermaid" "msc" "nomnoml" "pikchr" "plantuml" "shaape"
-    "smcat" "structurizr" "svgbob" "symbolator" "syntrax" "tikz" "umlet" "vega" "wavedrom"))
+  ; Same diagram list as injections.scm; shorthands (`plantuml#arch`) count.
+  (#not-match? @_style
+    "^(a2s|barcode|blockdiag|bpmn|bytefield|d2|dbml|diagrams|ditaa|dpic|erd|gnuplot|graphviz|lilypond|meme|mermaid|msc|nomnoml|pikchr|plantuml|shaape|smcat|structurizr|svgbob|symbolator|syntrax|tikz|umlet|vega|wavedrom)([#.%]|$)"))
+
+; A listing without a style is plain raw text: no attribute list, or one
+; that leads with a named attribute (`[subs=x]`). Shorthand-only lists
+; (`[#id]`) fall under the styled pattern above.
+(section_block
+  .
+  [
+    (block_title)
+    (block_anchor)
+  ]*
+  .
+  (listing_block
+    (listing_block_body) @markup.raw.block))
+
+(section_block
+  (element_attr
+    (element_attr_marker)
+    .
+    (named_attr))
+  (listing_block
+    (listing_block_body) @markup.raw.block))
 
 (line) @spell
