@@ -1,0 +1,24 @@
+==================
+block macro attributes with CRLF line endings
+==================
+
+image::a.png["Alt, text",200]
+== Section
+
+-----
+
+(document
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)
+        (block_macro_attr
+          (attribute_name))
+        (block_macro_attr
+          (attribute_name)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))

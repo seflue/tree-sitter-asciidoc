@@ -307,3 +307,258 @@ image::::: foo.png[]
       (block_macro
         (block_macro_name)
         (target)))))
+
+==================
+block macro attribute with an empty value
+==================
+
+include::a.adoc[tag=]
+include::a.adoc[optional-option=,leveloffset=1]
+
+----
+
+(document
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)
+        (block_macro_attr
+          (attribute_name)))))
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)
+        (block_macro_attr
+          (attribute_name))
+        (block_macro_attr
+          (attribute_name)
+          (attribute_value))))))
+
+==================
+block macro attribute list with a trailing comma
+==================
+
+image::a.png[alt=,]
+
+== Section
+
+----
+
+(document
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)
+        (block_macro_attr
+          (attribute_name)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+block macro positional attribute with a trailing comma
+==================
+
+image::a.png[A,]
+== Section
+
+----
+
+(document
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)
+        (block_macro_attr
+          (attribute_name)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+block macro empty value before another attribute
+==================
+
+include::a.adoc[tag=,leveloffset=+1]
+== Section
+
+----
+
+(document
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)
+        (block_macro_attr
+          (attribute_name))
+        (block_macro_attr
+          (attribute_name)
+          (attribute_value)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+block macro quoted value with a comma
+==================
+
+image::a.png[title="a, b",width=3]
+== Section
+
+----
+
+(document
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)
+        (block_macro_attr
+          (attribute_name)
+          (attribute_value))
+        (block_macro_attr
+          (attribute_name)
+          (attribute_value)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+block macro quoted positional attribute with a comma
+==================
+
+image::a.png["Alt, text",200]
+== Section
+
+----
+
+(document
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)
+        (block_macro_attr
+          (attribute_name))
+        (block_macro_attr
+          (attribute_name)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+block macro single-quoted positional attribute with a comma
+==================
+
+image::a.png['Alt, text',200]
+== Section
+
+----
+
+(document
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)
+        (block_macro_attr
+          (attribute_name))
+        (block_macro_attr
+          (attribute_name)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+block macro quoted value after a blank
+==================
+
+image::a.png[a, "b, c"]
+== Section
+
+----
+
+(document
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)
+        (block_macro_attr
+          (attribute_name))
+        (block_macro_attr
+          (attribute_name)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+block macro quote inside a value is plain text
+==================
+
+image::a.png[alt=x "y, z"]
+== Section
+
+----
+
+(document
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)
+        (block_macro_attr
+          (attribute_name)
+          (attribute_value))
+        (block_macro_attr
+          (attribute_name)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))
+
+==================
+block macro backslash does not escape a comma
+==================
+
+image::a.png[alt=x\,y]
+== Section
+
+----
+
+(document
+  (block_element
+    (section_block
+      (block_macro
+        (block_macro_name)
+        (target)
+        (block_macro_attr
+          (attribute_name)
+          (attribute_value))
+        (block_macro_attr
+          (attribute_name)))))
+  (block_element
+    (section
+      (title1
+        (title_h1_marker)
+        (line)))))

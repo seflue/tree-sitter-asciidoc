@@ -35,11 +35,6 @@
     }
   },
   {
-    "type": "attribute_name",
-    "named": true,
-    "fields": {}
-  },
-  {
     "type": "attribute_value",
     "named": true,
     "fields": {},
@@ -1618,15 +1613,7 @@
     "named": false
   },
   {
-    "type": "\\=",
-    "named": false
-  },
-  {
     "type": "\\[",
-    "named": false
-  },
-  {
-    "type": "\\]",
     "named": false
   },
   {
@@ -1659,6 +1646,10 @@
   },
   {
     "type": "attr_name",
+    "named": true
+  },
+  {
+    "type": "attribute_name",
     "named": true
   },
   {

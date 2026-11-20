@@ -1,5 +1,5 @@
 const {
-  commaSep,
+  commaSep1,
   escaped_ch,
   anySep1,
   anySep,
@@ -246,14 +246,32 @@ module.exports = grammar({
         '::',
         alias(repeat(escaped_ch('[')), $.target),
         '[',
-        commaSep($.block_macro_attr),
+        optional(seq(commaSep1($.block_macro_attr), optional(','))),
         ']',
         $._block_end,
       ),
     block_macro_attr: $ =>
-      seq($.attribute_name, optional(seq('=', $.attribute_value))),
-    attribute_name: $ => repeat1(escaped_ch('=')),
-    attribute_value: $ => repeat1(escaped_ch(']')),
+      seq($.attribute_name, optional(seq('=', optional($.attribute_value)))),
+    // A block macro sits on one line. A name ends at `=`, `,`, `]` or the
+    // line end, a value at `,`, `]` or the line end. Only a value or a name
+    // that starts with a quote (after blanks) may hold a comma, up to the
+    // closing quote; a quote further in is plain text, as in Asciidoctor.
+    attribute_name: _ =>
+      token(
+        choice(
+          /[ \t]*"[^"\r\n]*"[^=,\]\r\n]*/,
+          /[ \t]*'[^'\r\n]*'[^=,\]\r\n]*/,
+          /[^=,\]\r\n]+/,
+        ),
+      ),
+    attribute_value: _ =>
+      token(
+        choice(
+          /[ \t]*"[^"\r\n]*"[^,\]\r\n]*/,
+          /[ \t]*'[^'\r\n]*'[^,\]\r\n]*/,
+          /[^,\]\r\n]+/,
+        ),
+      ),
 
     // A `/` may be followed by anything: the value of a document attribute is
     // opaque text (paths, globs such as `src/**/*.kt`, URLs).  Requiring a
