@@ -1,3 +1,11 @@
+;; Two engines read this file: Neovim and tree-sitter-highlight (the
+;; asciidoc-lsp semantic tokens). Both must give the same colours.
+;; tree-sitter-highlight drops captures when several patterns share the
+;; same prefix and child node (`(section_block (element_attr ...)
+;; (delimited_block ...))`): all captures of one admonition block, markers
+;; and paragraphs, therefore sit in ONE pattern per colour and block kind.
+;; `tree-sitter query` lists every capture and does not show the loss: the
+;; asciidoc-lsp tests pin the result.
 ;; The document title node holds the whole header, author and revision
 ;; lines included, so only its marker and title text are the heading.
 (document_title
@@ -173,27 +181,21 @@
     (element_attr_marker)
     .
     (positional_attr) @_style)
-  [(delimited_block
-     (delimited_block_start_marker) @comment.note
-     (delimited_block_end_marker) @comment.note)
-   (open_block
-     (open_block_marker) @comment.note
-     (open_block_marker) @comment.note)])
+  (delimited_block
+    (delimited_block_start_marker) @comment.note
+    [(section_block (paragraph) @comment.note) (section_block)]*
+    (delimited_block_end_marker) @comment.note))
   (#match? @_style "^(NOTE|TIP)([#.%]|$)"))
 
-; Every paragraph directly in the body, whatever stands between them.
-; A styled paragraph in the body gets the colour too (rare, accepted).
 ((section_block
   (element_attr
     (element_attr_marker)
     .
     (positional_attr) @_style)
-  [(delimited_block
-     (section_block
-       (paragraph) @comment.note))
-   (open_block
-     (section_block
-       (paragraph) @comment.note))])
+  (open_block
+    (open_block_marker) @comment.note
+    [(section_block (paragraph) @comment.note) (section_block)]*
+    (open_block_marker) @comment.note))
   (#match? @_style "^(NOTE|TIP)([#.%]|$)"))
 
 ((section_block
@@ -209,27 +211,21 @@
     (element_attr_marker)
     .
     (positional_attr) @_style)
-  [(delimited_block
-     (delimited_block_start_marker) @comment.warning
-     (delimited_block_end_marker) @comment.warning)
-   (open_block
-     (open_block_marker) @comment.warning
-     (open_block_marker) @comment.warning)])
+  (delimited_block
+    (delimited_block_start_marker) @comment.warning
+    [(section_block (paragraph) @comment.warning) (section_block)]*
+    (delimited_block_end_marker) @comment.warning))
   (#match? @_style "^(CAUTION|WARNING)([#.%]|$)"))
 
-; Every paragraph directly in the body, whatever stands between them.
-; A styled paragraph in the body gets the colour too (rare, accepted).
 ((section_block
   (element_attr
     (element_attr_marker)
     .
     (positional_attr) @_style)
-  [(delimited_block
-     (section_block
-       (paragraph) @comment.warning))
-   (open_block
-     (section_block
-       (paragraph) @comment.warning))])
+  (open_block
+    (open_block_marker) @comment.warning
+    [(section_block (paragraph) @comment.warning) (section_block)]*
+    (open_block_marker) @comment.warning))
   (#match? @_style "^(CAUTION|WARNING)([#.%]|$)"))
 
 ((section_block
@@ -245,27 +241,21 @@
     (element_attr_marker)
     .
     (positional_attr) @_style)
-  [(delimited_block
-     (delimited_block_start_marker) @comment.error
-     (delimited_block_end_marker) @comment.error)
-   (open_block
-     (open_block_marker) @comment.error
-     (open_block_marker) @comment.error)])
+  (delimited_block
+    (delimited_block_start_marker) @comment.error
+    [(section_block (paragraph) @comment.error) (section_block)]*
+    (delimited_block_end_marker) @comment.error))
   (#match? @_style "^IMPORTANT([#.%]|$)"))
 
-; Every paragraph directly in the body, whatever stands between them.
-; A styled paragraph in the body gets the colour too (rare, accepted).
 ((section_block
   (element_attr
     (element_attr_marker)
     .
     (positional_attr) @_style)
-  [(delimited_block
-     (section_block
-       (paragraph) @comment.error))
-   (open_block
-     (section_block
-       (paragraph) @comment.error))])
+  (open_block
+    (open_block_marker) @comment.error
+    [(section_block (paragraph) @comment.error) (section_block)]*
+    (open_block_marker) @comment.error))
   (#match? @_style "^IMPORTANT([#.%]|$)"))
 
 ((section_block
