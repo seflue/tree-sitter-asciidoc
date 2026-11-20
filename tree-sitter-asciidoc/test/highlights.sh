@@ -154,3 +154,128 @@ output=$(captures_of '* item
 *v*
 ----')
 has_capture "$output" 'markup.raw.block' 3 || fail "$output"
+
+# A paragraph after a list or a listing in the body of a [NOTE] block is
+# still part of the admonition, one capture per direct paragraph.
+output=$(captures_of '[NOTE]
+====
+One
+
+* item
+
+Two
+
+----
+code
+----
+
+Three
+====')
+for line in 2 6 12; do
+  has_capture "$output" 'comment.note' "$line" || fail "$output"
+done
+
+# A paragraph of a nested block in the body is no direct body paragraph.
+output=$(captures_of '[WARNING]
+====
+One
+
+****
+side
+****
+
+Two
+====')
+has_capture "$output" 'comment.warning' 2 || fail "$output"
+has_capture "$output" 'comment.warning' 8 || fail "$output"
+if has_capture "$output" 'comment.warning' 5; then
+  fail "$output"
+fi
+
+# Asciidoctor makes an admonition only from a paragraph, an example block
+# or an open block: the style line over other blocks gets no capture.
+for block in '----
+x
+----' '****
+x
+****' '* x' '....
+x
+....' '|===
+|x
+|==='; do
+  output=$(captures_of "[NOTE]
+$block")
+  if has_capture "$output" 'comment.note' 0; then
+    fail "$output"
+  fi
+  # Neither the markers nor a paragraph of the body.
+  if printf '%s\n' "$output" | grep -q 'comment.note, start: ([1-9]'; then
+    fail "$output"
+  fi
+done
+
+# Over a paragraph, an example block and an open block it still is one.
+output=$(captures_of '[TIP]
+text')
+has_capture "$output" 'comment.note' 0 || fail "$output"
+output=$(captures_of '[IMPORTANT]
+====
+x
+====')
+has_capture "$output" 'comment.error' 0 || fail "$output"
+output=$(captures_of '[CAUTION]
+--
+x
+--')
+has_capture "$output" 'comment.warning' 0 || fail "$output"
+
+# An open block is an admonition like an example block: markers and every
+# direct body paragraph carry the capture, a nested block's paragraph not.
+output=$(captures_of '[NOTE]
+--
+a
+
+* item
+
+b
+
+****
+side
+****
+--')
+for line in 1 2 6 11; do
+  has_capture "$output" 'comment.note' "$line" || fail "$output"
+done
+if has_capture "$output" 'comment.note' 9; then
+  fail "$output"
+fi
+
+# A paragraph in a list continuation inside the body is not a direct one.
+output=$(captures_of '[NOTE]
+====
+One
+
+* item
++
+para
+====')
+has_capture "$output" 'comment.note' 2 || fail "$output"
+if has_capture "$output" 'comment.note' 6; then
+  fail "$output"
+fi
+
+# A title line in the body stays plain, its paragraph is coloured.
+output=$(captures_of '[NOTE]
+====
+.Title
+text
+====')
+if has_capture "$output" 'comment.note' 2; then
+  fail "$output"
+fi
+has_capture "$output" 'comment.note' 3 || fail "$output"
+
+# A shorthand after the style over a plain paragraph.
+output=$(captures_of '[NOTE.role]
+text')
+has_capture "$output" 'comment.note' 0 || fail "$output"
